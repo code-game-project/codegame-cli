@@ -1,13 +1,18 @@
 package external
 
 import (
+	"encoding/json"
+	"errors"
 	"fmt"
+	"net/http"
 	"os"
 	"os/exec"
 	"os/user"
 	"runtime"
 	"strings"
 )
+
+var ErrTagNotFound = errors.New("tag not found")
 
 func IsInstalled(programName string) bool {
 	_, err := exec.LookPath(programName)
@@ -57,4 +62,27 @@ func OpenBrowser(url string) error {
 	default:
 		return fmt.Errorf("unsupported platform")
 	}
+}
+
+func GithubTagFromMinorVersion(owner, repo, version string) (string, error) {
+	res, err := http.Get(fmt.Sprintf("https://api.github.com/repos/%s/%s/tags", owner, repo))
+	if err != nil {
+		return "", err
+	}
+	defer res.Body.Close()
+	type response []struct {
+		Name string `json:"name"`
+	}
+	var data response
+	err = json.NewDecoder(res.Body).Decode(&data)
+	if err != nil {
+		return "", err
+	}
+
+	for _, tag := range data {
+		if strings.HasPrefix(tag.Name, "v"+version) {
+			return tag.Name, nil
+		}
+	}
+	return "", ErrTagNotFound
 }

@@ -5,6 +5,7 @@ import (
 	"os"
 	"strings"
 
+	"github.com/code-game-project/codegame-cli/commands"
 	"github.com/code-game-project/codegame-cli/external"
 	"github.com/ogier/pflag"
 )
@@ -33,6 +34,8 @@ func main() {
 
 	var err error
 	switch command {
+	case "new":
+		err = commands.New()
 	case "docs":
 		err = external.OpenBrowser("https://github.com/code-game-project/docs/blob/main/README.md")
 	default:
