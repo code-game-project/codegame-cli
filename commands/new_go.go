@@ -5,11 +5,16 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"text/template"
+
+	_ "embed"
 
 	"github.com/code-game-project/codegame-cli/external"
 	"github.com/code-game-project/codegame-cli/input"
-	"github.com/code-game-project/codegame-cli/templates"
 )
+
+//go:embed templates/main.go.tmpl
+var goMainTemplate string
 
 func newClientGo(projectName, serverURL, cgVersion string) error {
 	err := createGoTemplate(projectName, serverURL)
@@ -42,7 +47,24 @@ func createGoTemplate(projectName, serverURL string) error {
 		return err
 	}
 
-	return os.WriteFile(filepath.Join(projectName, "main.go"), []byte(strings.ReplaceAll(fmt.Sprintf(templates.Go, serverURL), "$", "%")), 0644)
+	tmpl, err := template.New("main.go").Parse(goMainTemplate)
+	if err != nil {
+		return err
+	}
+
+	file, err := os.Create(filepath.Join(projectName, "main.go"))
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+
+	type data struct {
+		URL string
+	}
+
+	return tmpl.Execute(file, data{
+		URL: serverURL,
+	})
 }
 
 func installGoLibrary(projectName, cgVersion string) error {

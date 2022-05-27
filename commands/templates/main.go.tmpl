@@ -1,0 +1,8 @@
+package main
+
+func main() {
+	socket, err := cg.NewSocket("{{.URL}}")
+	if err != nil {
+		log.Fatalf("failed to connect to server: %s", err)
+	}
+}
