@@ -27,21 +27,35 @@ func New() error {
 		}
 	}
 
+	projectName, err := input.Input("Project name:")
+	if err != nil {
+		return err
+	}
+
+	if _, err := os.Stat(projectName); err == nil {
+		return fmt.Errorf("Project '%s' already exists.", projectName)
+	}
+
+	err = os.MkdirAll(projectName, 0755)
+	if err != nil {
+		return err
+	}
+
 	switch project {
 	case "server":
-		return newServer()
+		return newServer(projectName)
 	case "client":
-		return newClient()
+		return newClient(projectName)
 	default:
 		return fmt.Errorf("Unknown project type: %s", project)
 	}
 }
 
-func newServer() error {
+func newServer(projectName string) error {
 	return errors.New("Not implemented.")
 }
 
-func newClient() error {
+func newClient(projectName string) error {
 	url, err := input.Input("Enter the URL of the game server:")
 	if err != nil {
 		return err
@@ -62,16 +76,6 @@ func newClient() error {
 		return err
 	}
 	cgeVersion, err := getCGEVersion(baseURL(url, ssl))
-	if err != nil {
-		return err
-	}
-
-	projectName, err := input.Input("Project name:")
-	if err != nil {
-		return err
-	}
-
-	err = os.MkdirAll(projectName, 0755)
 	if err != nil {
 		return err
 	}
