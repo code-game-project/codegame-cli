@@ -23,7 +23,7 @@ func InstallCGGenEvents(cgeVersion string) error {
 		return nil
 	}
 
-	version, err := GithubTagFromMinorVersion("code-game-project", "cg-gen-events", cgeVersion)
+	version, err := GithubTagFromVersion("code-game-project", "cg-gen-events", cgeVersion)
 	if err != nil {
 		return err
 	}

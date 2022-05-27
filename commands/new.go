@@ -42,26 +42,26 @@ func newServer() error {
 }
 
 func newClient() error {
-	domain, err := input.Input("Enter the domain of the game server:")
+	url, err := input.Input("Enter the URL of the game server:")
 	if err != nil {
 		return err
 	}
-	if strings.HasPrefix(domain, "http://") {
-		domain = strings.TrimPrefix(domain, "http://")
-	} else if strings.HasPrefix(domain, "https://") {
-		domain = strings.TrimPrefix(domain, "https://")
-	} else if strings.HasPrefix(domain, "ws://") {
-		domain = strings.TrimPrefix(domain, "ws://")
-	} else if strings.HasPrefix(domain, "wss://") {
-		domain = strings.TrimPrefix(domain, "wss://")
+	if strings.HasPrefix(url, "http://") {
+		url = strings.TrimPrefix(url, "http://")
+	} else if strings.HasPrefix(url, "https://") {
+		url = strings.TrimPrefix(url, "https://")
+	} else if strings.HasPrefix(url, "ws://") {
+		url = strings.TrimPrefix(url, "ws://")
+	} else if strings.HasPrefix(url, "wss://") {
+		url = strings.TrimPrefix(url, "wss://")
 	}
-	domain = strings.TrimSuffix(domain, "/")
-	ssl := isSSL(domain)
-	name, _, err := getCodeGameInfo(baseURL(domain, ssl))
+	url = strings.TrimSuffix(url, "/")
+	ssl := isSSL(url)
+	name, cgVersion, err := getCodeGameInfo(baseURL(url, ssl))
 	if err != nil {
 		return err
 	}
-	cgeVersion, err := getCGEVersion(baseURL(domain, ssl))
+	cgeVersion, err := getCGEVersion(baseURL(url, ssl))
 	if err != nil {
 		return err
 	}
@@ -89,13 +89,26 @@ func newClient() error {
 
 	eventsOutput := projectName
 	if language == "go" {
-		eventsOutput = filepath.Join(projectName, name)
+		eventsOutput = filepath.Join(projectName, strings.ReplaceAll(strings.ReplaceAll(name, "-", ""), "_", ""))
 	}
 
-	err = external.CGGenEvents(eventsOutput, baseURL(domain, ssl), cgeVersion, language)
+	err = external.CGGenEvents(eventsOutput, baseURL(url, ssl), cgeVersion, language)
+	if err != nil {
+		fmt.Fprintln(os.Stderr, "\x1b[31mFailed to generate event definitions:", err, "\x1b[0m")
+	}
+
+	switch language {
+	case "go":
+		err = newClientGo(projectName, url, cgVersion)
+	default:
+		return fmt.Errorf("Unsupported language: %s", language)
+	}
 	if err != nil {
 		return err
 	}
+
+	fmt.Printf("\x1b[32mSuccessfully created project in '%s'.\n\x1b[0m", projectName)
+
 	return nil
 }
 

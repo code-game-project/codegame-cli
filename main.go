@@ -44,7 +44,7 @@ func main() {
 		os.Exit(1)
 	}
 	if err != nil {
-		fmt.Fprintln(os.Stderr, err)
+		fmt.Fprint(os.Stderr, "\x1b[31m", err, "\n\x1b[0m")
 		os.Exit(1)
 	}
 }

@@ -4,11 +4,13 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"math"
 	"net/http"
 	"os"
 	"os/exec"
 	"os/user"
 	"runtime"
+	"strconv"
 	"strings"
 )
 
@@ -27,11 +29,24 @@ func Execute(programName string, args ...string) error {
 	return cmd.Run()
 }
 
-func ExecuteHidden(programName string, args ...string) (string, error) {
+func ExecuteInDir(workingDir, programName string, args ...string) error {
 	cmd := exec.Command(programName, args...)
+	cmd.Dir = workingDir
 	cmd.Stdin = os.Stdin
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
+	return cmd.Run()
+}
+
+func ExecuteHidden(programName string, args ...string) (string, error) {
+	cmd := exec.Command(programName, args...)
+	out, err := cmd.CombinedOutput()
+	return string(out), err
+}
+
+func ExecuteInDirHidden(workingDir, programName string, args ...string) (string, error) {
+	cmd := exec.Command(programName, args...)
+	cmd.Dir = workingDir
 	out, err := cmd.CombinedOutput()
 	return string(out), err
 }
@@ -64,7 +79,7 @@ func OpenBrowser(url string) error {
 	}
 }
 
-func GithubTagFromMinorVersion(owner, repo, version string) (string, error) {
+func GithubTagFromVersion(owner, repo, version string) (string, error) {
 	res, err := http.Get(fmt.Sprintf("https://api.github.com/repos/%s/%s/tags", owner, repo))
 	if err != nil {
 		return "", err
@@ -85,4 +100,91 @@ func GithubTagFromMinorVersion(owner, repo, version string) (string, error) {
 		}
 	}
 	return "", ErrTagNotFound
+}
+
+func ClientVersionFromCGVersion(owner, repo, cgVersion string) string {
+	res, err := http.Get(fmt.Sprintf("https://raw.githubusercontent.com/%s/%s/main/versions.json", owner, repo))
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "\x1b[33mWARNING: Couldn't fetch versions.json. Using latest client library version.\n\x1b[0m")
+		return "latest"
+	}
+	defer res.Body.Close()
+
+	var versions map[string]string
+	err = json.NewDecoder(res.Body).Decode(&versions)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "\x1b[33mWARNING: Invalid versions.json. Using latest client library version.\n\x1b[0m")
+		return "latest"
+	}
+
+	// check exact match
+	if v, ok := versions[cgVersion]; ok {
+		return v
+	}
+
+	parts := strings.Split(cgVersion, ".")
+	if len(parts) < 2 {
+		fmt.Fprintf(os.Stderr, "\x1b[33mWARNING: Invalid versions.json. Using latest client library version.\n\x1b[0m")
+		return "latest"
+	}
+	major := parts[0]
+
+	// get all minor versions of the requested major version
+	compatibleMinorVersions := make([]int, 0)
+	for v := range versions {
+		clientParts := strings.Split(v, ".")
+		if len(clientParts) < 2 {
+			fmt.Fprintf(os.Stderr, "\x1b[33mWARNING: Invalid versions.json. Using latest client library version.\n\x1b[0m")
+			return "latest"
+		}
+		clientMajor := clientParts[0]
+		if major == clientMajor {
+			minor, err := strconv.Atoi(clientParts[1])
+			if err != nil {
+				fmt.Fprintf(os.Stderr, "\x1b[33mWARNING: Invalid versions.json. Using latest client library version.\n\x1b[0m")
+				return "latest"
+			}
+			compatibleMinorVersions = append(compatibleMinorVersions, minor)
+		}
+	}
+	if len(compatibleMinorVersions) == 0 {
+		fmt.Fprintf(os.Stderr, "\x1b[33mWARNING: No compatible client library version found. Using latest client library version.\n\x1b[0m")
+		return "latest"
+	}
+
+	minorStr := parts[1]
+	minor, err := strconv.Atoi(minorStr)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "\x1b[33mWARNING: Invalid versions.json. Using latest client library version.\n\x1b[0m")
+		return "latest"
+	}
+
+	// check closest minor version above requested
+	closestMinor := -1
+	for _, v := range compatibleMinorVersions {
+		if v > minor && float64(closestMinor-minor) > float64(v-minor) {
+			closestMinor = v
+		}
+	}
+	if closestMinor >= 0 {
+		v := fmt.Sprintf("%s.%d", major, minor)
+		fmt.Fprintf(os.Stderr, "\x1b[33mWARNING: No exact version match found. Using client library version %s.\n\x1b[0m", v)
+		return v
+	}
+
+	// check closest minor version below requested
+	closestMinor = math.MaxInt
+	for _, v := range compatibleMinorVersions {
+		if v < minor && float64(minor-closestMinor) > float64(minor-v) {
+			closestMinor = v
+		}
+	}
+	if closestMinor >= 0 {
+		v := fmt.Sprintf("%s.%d", major, minor)
+		fmt.Fprintf(os.Stderr, "\x1b[33mWARNING: No exact version match found. Using client library version %s.\n\x1b[0m", v)
+		return v
+	}
+
+	fmt.Fprintf(os.Stderr, "\x1b[33mWARNING: No compatible client library version found. Using latest client library version.\n\x1b[0m")
+	return "latest"
 }
