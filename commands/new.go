@@ -2,16 +2,14 @@ package commands
 
 import (
 	"encoding/json"
-	"errors"
-	"fmt"
 	"io"
 	"net/http"
 	"os"
 	"path/filepath"
 	"strings"
 
+	"github.com/code-game-project/codegame-cli/cli"
 	"github.com/code-game-project/codegame-cli/external"
-	"github.com/code-game-project/codegame-cli/input"
 	"github.com/ogier/pflag"
 )
 
@@ -21,19 +19,19 @@ func New() error {
 		project = strings.ToLower(pflag.Arg(1))
 	} else {
 		var err error
-		project, err = input.Select("Which type of project would you like to create?", []string{"Game Server", "Game Client"}, []string{"server", "client"})
+		project, err = cli.Select("Which type of project would you like to create?", []string{"Game Server", "Game Client"}, []string{"server", "client"})
 		if err != nil {
 			return err
 		}
 	}
 
-	projectName, err := input.Input("Project name:")
+	projectName, err := cli.Input("Project name:")
 	if err != nil {
 		return err
 	}
 
 	if _, err := os.Stat(projectName); err == nil {
-		return fmt.Errorf("Project '%s' already exists.", projectName)
+		return cli.Error("Project '%s' already exists.", projectName)
 	}
 
 	err = os.MkdirAll(projectName, 0755)
@@ -43,20 +41,28 @@ func New() error {
 
 	switch project {
 	case "server":
-		return newServer(projectName)
+		err = newServer(projectName)
 	case "client":
-		return newClient(projectName)
+		err = newClient(projectName)
 	default:
-		return fmt.Errorf("Unknown project type: %s", project)
+		err = cli.Error("Unknown project type: %s", project)
 	}
+
+	if err != nil {
+		os.RemoveAll(projectName)
+		return err
+	}
+
+	cli.Success("Successfully created project in '%s/'.", projectName)
+	return nil
 }
 
 func newServer(projectName string) error {
-	return errors.New("Not implemented.")
+	return cli.Error("Not implemented.")
 }
 
 func newClient(projectName string) error {
-	url, err := input.Input("Enter the URL of the game server:")
+	url, err := cli.Input("Enter the URL of the game server:")
 	if err != nil {
 		return err
 	}
@@ -85,7 +91,7 @@ func newClient(projectName string) error {
 		language = strings.ToLower(pflag.Arg(2))
 	} else {
 		var err error
-		language, err = input.Select("In which language do you want to write your project?", []string{"Go"}, []string{"go"})
+		language, err = cli.Select("In which language do you want to write your project?", []string{"Go"}, []string{"go"})
 		if err != nil {
 			return err
 		}
@@ -98,20 +104,18 @@ func newClient(projectName string) error {
 
 	err = external.CGGenEvents(eventsOutput, baseURL(url, ssl), cgeVersion, language)
 	if err != nil {
-		fmt.Fprintln(os.Stderr, "\x1b[31mFailed to generate event definitions:", err, "\x1b[0m")
+		cli.Error("Failed to generate event definitions: %s", err)
 	}
 
 	switch language {
 	case "go":
 		err = newClientGo(projectName, url, cgVersion)
 	default:
-		return fmt.Errorf("Unsupported language: %s", language)
+		return cli.Error("Unsupported language: %s", language)
 	}
 	if err != nil {
 		return err
 	}
-
-	fmt.Printf("\x1b[32mSuccessfully created project in '%s'.\n\x1b[0m", projectName)
 
 	return nil
 }
@@ -122,15 +126,15 @@ func getCodeGameInfo(baseURL string) (string, string, error) {
 		CGVersion string `json:"cg_version"`
 	}
 	res, err := http.Get(baseURL + "/info")
-	if err != nil {
-		return "", "", err
+	if err != nil || res.StatusCode != http.StatusOK {
+		return "", "", cli.Error("Couldn't access /info endpoint.")
 	}
 	defer res.Body.Close()
 
 	var data response
 	err = json.NewDecoder(res.Body).Decode(&data)
 	if err != nil {
-		return "", "", err
+		return "", "", cli.Error("Couldn't decode /info data.")
 	}
 
 	return data.Name, data.CGVersion, nil
@@ -138,14 +142,14 @@ func getCodeGameInfo(baseURL string) (string, string, error) {
 
 func getCGEVersion(baseURL string) (string, error) {
 	res, err := http.Get(baseURL + "/events")
-	if err != nil {
-		return "", err
+	if err != nil || res.StatusCode != http.StatusOK {
+		return "", cli.Error("Couldn't access /events endpoint.")
 	}
 	defer res.Body.Close()
 
 	data, err := io.ReadAll(res.Body)
 	if err != nil {
-		return "", err
+		return "", cli.Error("Couldn't read /events file.")
 	}
 	return parseCGEVersion([]rune(string(data))), nil
 }

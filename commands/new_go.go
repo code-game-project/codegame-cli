@@ -9,8 +9,8 @@ import (
 
 	_ "embed"
 
+	"github.com/code-game-project/codegame-cli/cli"
 	"github.com/code-game-project/codegame-cli/external"
-	"github.com/code-game-project/codegame-cli/input"
 )
 
 //go:embed templates/main.go.tmpl
@@ -27,20 +27,28 @@ func newClientGo(projectName, serverURL, cgVersion string) error {
 		return err
 	}
 
+	cli.Begin("Cleaning up...")
 	err = external.ExecuteInDir(projectName, "go", "mod", "tidy")
 	if err != nil {
 		return err
 	}
 
-	return external.ExecuteInDir(projectName, "goimports", "-w", "main.go")
+	err = external.ExecuteInDir(projectName, "goimports", "-w", "main.go")
+	if err != nil {
+		cli.Warn("Failed to add import statements: %s", err)
+	}
+	cli.Finish()
+
+	return nil
 }
 
 func createGoTemplate(projectName, serverURL string) error {
-	module, err := input.Input("Project module path:")
+	module, err := cli.Input("Project module path:")
 	if err != nil {
 		return err
 	}
 
+	cli.Begin("Creating project template...")
 	out, err := external.ExecuteInDirHidden(projectName, "go", "mod", "init", module)
 	if err != nil {
 		fmt.Println(out)
@@ -62,12 +70,16 @@ func createGoTemplate(projectName, serverURL string) error {
 		URL string
 	}
 
-	return tmpl.Execute(file, data{
+	err = tmpl.Execute(file, data{
 		URL: serverURL,
 	})
+	cli.Finish()
+	return err
 }
 
 func installGoLibrary(projectName, cgVersion string) error {
+	cli.Begin("Fetching correct client library version...")
+
 	clientVersion := external.ClientVersionFromCGVersion("code-game-project", "go-client", cgVersion)
 
 	if clientVersion == "latest" {
@@ -88,10 +100,14 @@ func installGoLibrary(projectName, cgVersion string) error {
 		path = fmt.Sprintf("github.com/code-game-project/go-client/v%s/cg", majorVersion)
 	}
 	path += "@" + tag
+	cli.Finish()
 
+	cli.Begin("Installing dependencies...")
 	out, err := external.ExecuteInDirHidden(projectName, "go", "get", path)
 	if err != nil {
-		fmt.Println(out)
+		cli.Error(out)
+		return err
 	}
-	return err
+	cli.Finish()
+	return nil
 }

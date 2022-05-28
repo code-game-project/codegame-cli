@@ -5,6 +5,7 @@ import (
 	"os"
 	"strings"
 
+	"github.com/code-game-project/codegame-cli/cli"
 	"github.com/code-game-project/codegame-cli/commands"
 	"github.com/code-game-project/codegame-cli/external"
 	"github.com/ogier/pflag"
@@ -36,15 +37,20 @@ func main() {
 	switch command {
 	case "new":
 		err = commands.New()
+		if err == cli.ErrCanceled {
+			cli.Info(err.Error())
+		}
 	case "docs":
 		err = external.OpenBrowser("https://github.com/code-game-project/docs/blob/main/README.md")
+		if err != nil {
+			cli.Error(err.Error())
+		}
 	default:
-		fmt.Println("Unknown command:", strings.ToLower(pflag.Arg(0)))
+		cli.Error("Unknown command:", strings.ToLower(pflag.Arg(0)))
 		pflag.Usage()
 		os.Exit(1)
 	}
 	if err != nil {
-		fmt.Fprint(os.Stderr, "\x1b[31m", err, "\n\x1b[0m")
 		os.Exit(1)
 	}
 }

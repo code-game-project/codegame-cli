@@ -12,6 +12,8 @@ import (
 	"runtime"
 	"strconv"
 	"strings"
+
+	"github.com/code-game-project/codegame-cli/cli"
 )
 
 var ErrTagNotFound = errors.New("tag not found")
@@ -62,7 +64,7 @@ func GetUsername() string {
 		return strings.TrimSpace(user.Username)
 	}
 
-	fmt.Println("Make sure to replace <your-name> with your actual name.")
+	cli.Info("Make sure to replace <your-name> with your actual name.")
 	return "<your-name>"
 }
 
@@ -75,14 +77,14 @@ func OpenBrowser(url string) error {
 	case "darwin":
 		return exec.Command("open", url).Start()
 	default:
-		return fmt.Errorf("unsupported platform")
+		return fmt.Errorf("Unsupported platform.")
 	}
 }
 
 func GithubTagFromVersion(owner, repo, version string) (string, error) {
 	res, err := http.Get(fmt.Sprintf("https://api.github.com/repos/%s/%s/tags", owner, repo))
-	if err != nil {
-		return "", err
+	if err != nil || res.StatusCode != http.StatusOK {
+		return "", cli.Error("Couldn't access git tags from 'github.com/%s/%s'.", owner, repo)
 	}
 	defer res.Body.Close()
 	type response []struct {
@@ -91,7 +93,7 @@ func GithubTagFromVersion(owner, repo, version string) (string, error) {
 	var data response
 	err = json.NewDecoder(res.Body).Decode(&data)
 	if err != nil {
-		return "", err
+		return "", cli.Error("Couldn't decode git tag data.")
 	}
 
 	for _, tag := range data {
@@ -104,8 +106,8 @@ func GithubTagFromVersion(owner, repo, version string) (string, error) {
 
 func ClientVersionFromCGVersion(owner, repo, cgVersion string) string {
 	res, err := http.Get(fmt.Sprintf("https://raw.githubusercontent.com/%s/%s/main/versions.json", owner, repo))
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "\x1b[33mWARNING: Couldn't fetch versions.json. Using latest client library version.\n\x1b[0m")
+	if err != nil || res.StatusCode != http.StatusOK {
+		cli.Warn("Couldn't fetch versions.json. Using latest client library version.")
 		return "latest"
 	}
 	defer res.Body.Close()
@@ -113,7 +115,7 @@ func ClientVersionFromCGVersion(owner, repo, cgVersion string) string {
 	var versions map[string]string
 	err = json.NewDecoder(res.Body).Decode(&versions)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "\x1b[33mWARNING: Invalid versions.json. Using latest client library version.\n\x1b[0m")
+		cli.Warn("Invalid versions.json. Using latest client library version.")
 		return "latest"
 	}
 
@@ -124,7 +126,7 @@ func ClientVersionFromCGVersion(owner, repo, cgVersion string) string {
 
 	parts := strings.Split(cgVersion, ".")
 	if len(parts) < 2 {
-		fmt.Fprintf(os.Stderr, "\x1b[33mWARNING: Invalid versions.json. Using latest client library version.\n\x1b[0m")
+		cli.Warn("Invalid versions.json. Using latest client library version.")
 		return "latest"
 	}
 	major := parts[0]
@@ -134,28 +136,28 @@ func ClientVersionFromCGVersion(owner, repo, cgVersion string) string {
 	for v := range versions {
 		clientParts := strings.Split(v, ".")
 		if len(clientParts) < 2 {
-			fmt.Fprintf(os.Stderr, "\x1b[33mWARNING: Invalid versions.json. Using latest client library version.\n\x1b[0m")
+			cli.Warn("Invalid versions.json. Using latest client library version.")
 			return "latest"
 		}
 		clientMajor := clientParts[0]
 		if major == clientMajor {
 			minor, err := strconv.Atoi(clientParts[1])
 			if err != nil {
-				fmt.Fprintf(os.Stderr, "\x1b[33mWARNING: Invalid versions.json. Using latest client library version.\n\x1b[0m")
+				cli.Warn("Invalid versions.json. Using latest client library version.")
 				return "latest"
 			}
 			compatibleMinorVersions = append(compatibleMinorVersions, minor)
 		}
 	}
 	if len(compatibleMinorVersions) == 0 {
-		fmt.Fprintf(os.Stderr, "\x1b[33mWARNING: No compatible client library version found. Using latest client library version.\n\x1b[0m")
+		cli.Warn("No compatible client library version found. Using latest client library version.")
 		return "latest"
 	}
 
 	minorStr := parts[1]
 	minor, err := strconv.Atoi(minorStr)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "\x1b[33mWARNING: Invalid versions.json. Using latest client library version.\n\x1b[0m")
+		cli.Warn("Invalid versions.json. Using latest client library version.")
 		return "latest"
 	}
 
@@ -168,7 +170,7 @@ func ClientVersionFromCGVersion(owner, repo, cgVersion string) string {
 	}
 	if closestMinor >= 0 {
 		v := fmt.Sprintf("%s.%d", major, minor)
-		fmt.Fprintf(os.Stderr, "\x1b[33mWARNING: No exact version match found. Using client library version %s.\n\x1b[0m", v)
+		cli.Warn("No exact version match found. Using client library version %s.", v)
 		return v
 	}
 
@@ -181,10 +183,10 @@ func ClientVersionFromCGVersion(owner, repo, cgVersion string) string {
 	}
 	if closestMinor >= 0 {
 		v := fmt.Sprintf("%s.%d", major, minor)
-		fmt.Fprintf(os.Stderr, "\x1b[33mWARNING: No exact version match found. Using client library version %s.\n\x1b[0m", v)
+		cli.Warn("No exact version match found. Using client library version %s.")
 		return v
 	}
 
-	fmt.Fprintf(os.Stderr, "\x1b[33mWARNING: No compatible client library version found. Using latest client library version.\n\x1b[0m")
+	cli.Warn("No compatible client library version found. Using latest client library version.")
 	return "latest"
 }
