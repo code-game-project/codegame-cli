@@ -1,6 +1,6 @@
 # codegame-cli
+![CG Server Version](https://img.shields.io/badge/GameServer-v0.1+-yellow)
 ![CG Client Version](https://img.shields.io/badge/Client-v0.3+-yellow)
-![CG Server Version](https://img.shields.io/badge/Client-v0.1+-yellow)
 
 The official [CodeGame](https://github.com/code-game-project) CLI.
 
