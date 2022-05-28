@@ -98,8 +98,6 @@ curl -L https://github.com/code-game-project/codegame-cli/releases/latest/downlo
 
 You can download a prebuilt binary file for your operating system on the [releases](https://github.com/code-game-project/codegame-cli/releases) page.
 
-You might need to make the file executable before running it.
-
 ### Compiling from source
 
 #### Prerequisites
