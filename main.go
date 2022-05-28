@@ -46,11 +46,14 @@ func main() {
 			cli.Error(err.Error())
 		}
 	default:
-		cli.Error("Unknown command:", strings.ToLower(pflag.Arg(0)))
+		cli.Error("Unknown command: %s", strings.ToLower(pflag.Arg(0)))
 		pflag.Usage()
 		os.Exit(1)
 	}
 	if err != nil {
+		if cli.IsInProgress() {
+			fmt.Println()
+		}
 		os.Exit(1)
 	}
 }

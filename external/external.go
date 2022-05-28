@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"math"
+	"mime"
 	"net/http"
 	"os"
 	"os/exec"
@@ -24,6 +25,10 @@ func IsInstalled(programName string) bool {
 }
 
 func Execute(programName string, args ...string) error {
+	if _, err := exec.LookPath(programName); err != nil {
+		cli.Error("'%s' ist not installed!", programName)
+		return err
+	}
 	cmd := exec.Command(programName, args...)
 	cmd.Stdin = os.Stdin
 	cmd.Stdout = os.Stdout
@@ -32,6 +37,10 @@ func Execute(programName string, args ...string) error {
 }
 
 func ExecuteInDir(workingDir, programName string, args ...string) error {
+	if _, err := exec.LookPath(programName); err != nil {
+		cli.Error("'%s' ist not installed!", programName)
+		return err
+	}
 	cmd := exec.Command(programName, args...)
 	cmd.Dir = workingDir
 	cmd.Stdin = os.Stdin
@@ -41,12 +50,20 @@ func ExecuteInDir(workingDir, programName string, args ...string) error {
 }
 
 func ExecuteHidden(programName string, args ...string) (string, error) {
+	if _, err := exec.LookPath(programName); err != nil {
+		cli.Error("'%s' ist not installed!", programName)
+		return "", err
+	}
 	cmd := exec.Command(programName, args...)
 	out, err := cmd.CombinedOutput()
 	return string(out), err
 }
 
 func ExecuteInDirHidden(workingDir, programName string, args ...string) (string, error) {
+	if _, err := exec.LookPath(programName); err != nil {
+		cli.Error("'%s' ist not installed!", programName)
+		return "", err
+	}
 	cmd := exec.Command(programName, args...)
 	cmd.Dir = workingDir
 	out, err := cmd.CombinedOutput()
@@ -83,7 +100,7 @@ func OpenBrowser(url string) error {
 
 func GithubTagFromVersion(owner, repo, version string) (string, error) {
 	res, err := http.Get(fmt.Sprintf("https://api.github.com/repos/%s/%s/tags", owner, repo))
-	if err != nil || res.StatusCode != http.StatusOK {
+	if err != nil || res.StatusCode != http.StatusOK || !HasContentType(res.Header, "application/json") {
 		return "", cli.Error("Couldn't access git tags from 'github.com/%s/%s'.", owner, repo)
 	}
 	defer res.Body.Close()
@@ -189,4 +206,21 @@ func ClientVersionFromCGVersion(owner, repo, cgVersion string) string {
 
 	cli.Warn("No compatible client library version found. Using latest client library version.")
 	return "latest"
+}
+func HasContentType(h http.Header, mimetype string) bool {
+	contentType := h.Get("Content-type")
+	if contentType == "" {
+		return mimetype == "application/octet-stream"
+	}
+
+	for _, v := range strings.Split(contentType, ",") {
+		t, _, err := mime.ParseMediaType(v)
+		if err != nil {
+			break
+		}
+		if t == mimetype {
+			return true
+		}
+	}
+	return false
 }

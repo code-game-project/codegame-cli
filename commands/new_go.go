@@ -33,10 +33,12 @@ func newClientGo(projectName, serverURL, cgVersion string) error {
 		return err
 	}
 
-	err = external.ExecuteInDir(projectName, "goimports", "-w", "main.go")
-	if err != nil {
-		cli.Warn("Failed to add import statements: %s", err)
+	if !external.IsInstalled("goimports") {
+		cli.Warn("Failed to add import statements: 'goimports' is not installed!")
+		return nil
 	}
+
+	external.ExecuteInDir(projectName, "goimports", "-w", "main.go")
 	cli.Finish()
 
 	return nil
@@ -51,7 +53,9 @@ func createGoTemplate(projectName, serverURL string) error {
 	cli.Begin("Creating project template...")
 	out, err := external.ExecuteInDirHidden(projectName, "go", "mod", "init", module)
 	if err != nil {
-		fmt.Println(out)
+		if out != "" {
+			cli.Error(out)
+		}
 		return err
 	}
 
@@ -84,8 +88,8 @@ func installGoLibrary(projectName, cgVersion string) error {
 
 	if clientVersion == "latest" {
 		out, err := external.ExecuteInDirHidden(projectName, "go", "get")
-		if err != nil {
-			fmt.Println(out)
+		if err != nil && out != "" {
+			cli.Error(out)
 		}
 		return err
 	}

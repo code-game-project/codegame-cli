@@ -19,7 +19,7 @@ func New() error {
 		project = strings.ToLower(pflag.Arg(1))
 	} else {
 		var err error
-		project, err = cli.Select("Which type of project would you like to create?", []string{"Game Server", "Game Client"}, []string{"server", "client"})
+		project, err = cli.Select("Which type of project would you like to create?", []string{"Game Client", "Game Server"}, []string{"client", "server"})
 		if err != nil {
 			return err
 		}
@@ -126,7 +126,7 @@ func getCodeGameInfo(baseURL string) (string, string, error) {
 		CGVersion string `json:"cg_version"`
 	}
 	res, err := http.Get(baseURL + "/info")
-	if err != nil || res.StatusCode != http.StatusOK {
+	if err != nil || res.StatusCode != http.StatusOK || !external.HasContentType(res.Header, "application/json") {
 		return "", "", cli.Error("Couldn't access /info endpoint.")
 	}
 	defer res.Body.Close()
@@ -142,7 +142,7 @@ func getCodeGameInfo(baseURL string) (string, string, error) {
 
 func getCGEVersion(baseURL string) (string, error) {
 	res, err := http.Get(baseURL + "/events")
-	if err != nil || res.StatusCode != http.StatusOK {
+	if err != nil || res.StatusCode != http.StatusOK || !external.HasContentType(res.Header, "text/plain") {
 		return "", cli.Error("Couldn't access /events endpoint.")
 	}
 	defer res.Body.Close()
