@@ -1,12 +1,17 @@
 package commands
 
 import (
+	_ "embed"
 	"encoding/json"
+	"errors"
+	"fmt"
 	"io"
 	"net/http"
 	"os"
 	"path/filepath"
 	"strings"
+	"text/template"
+	"time"
 
 	"github.com/code-game-project/codegame-cli/cli"
 	"github.com/code-game-project/codegame-cli/external"
@@ -50,6 +55,19 @@ func New() error {
 
 	if err != nil {
 		os.RemoveAll(projectName)
+		return err
+	}
+
+	err = git(projectName)
+	if err != nil {
+		return err
+	}
+	err = readme(projectName)
+	if err != nil {
+		return err
+	}
+	err = license(projectName)
+	if err != nil {
 		return err
 	}
 
@@ -132,6 +150,164 @@ func newClient(projectName string) error {
 		return cli.Error("Unsupported language: %s", language)
 	}
 	return err
+}
+
+func git(projectName string) error {
+	if !external.IsInstalled("git") {
+		return nil
+	}
+
+	yes, err := cli.YesNo("Do you want to initialize git?", true)
+	if err != nil {
+		os.RemoveAll(projectName)
+		return err
+	}
+	if !yes {
+		return nil
+	}
+	out, err := external.ExecuteInDirHidden(projectName, "git", "init")
+	if err != nil {
+		if out != "" {
+			cli.Error(out)
+		}
+		return err
+	}
+
+	return nil
+}
+
+func readme(projectName string) error {
+	yes, err := cli.YesNo("Create a README file?", true)
+	if err != nil {
+		os.RemoveAll(projectName)
+		return err
+	}
+	if !yes {
+		return nil
+	}
+
+	fileContent := fmt.Sprintf("# %s", projectName)
+
+	err = os.WriteFile(filepath.Join(projectName, "README.md"), []byte(fileContent), 0644)
+	if err != nil {
+		cli.Error(err.Error())
+	}
+	return err
+}
+
+//go:embed templates/licenses/MIT.tmpl
+var licenseMIT string
+
+//go:embed templates/licenses/MIT_README.tmpl
+var licenseReadmeMIT string
+
+//go:embed templates/licenses/GPL.tmpl
+var licenseGPL string
+
+//go:embed templates/licenses/GPL_README.tmpl
+var licenseReadmeGPL string
+
+//go:embed templates/licenses/AGPL.tmpl
+var licenseAGPL string
+
+//go:embed templates/licenses/AGPL_README.tmpl
+var licenseReadmeAGPL string
+
+//go:embed templates/licenses/Apache.tmpl
+var licenseApache string
+
+//go:embed templates/licenses/Apache_README.tmpl
+var licenseReadmeApache string
+
+func license(projectName string) error {
+	license, err := cli.Select("Select a license", []string{"None", "MIT", "GPLv3", "AGPL", "Apache 2.0"}, []string{"none", "MIT", "GPL", "AGPL", "Apache"})
+	if err != nil {
+		os.RemoveAll(projectName)
+		return err
+	}
+
+	var licenseTemplate string
+	var licenseReadmeTemplate string
+	switch license {
+	case "MIT":
+		licenseTemplate = licenseMIT
+		licenseReadmeTemplate = licenseReadmeMIT
+	case "GPL":
+		licenseTemplate = licenseGPL
+		licenseReadmeTemplate = licenseReadmeGPL
+	case "AGPL":
+		licenseTemplate = licenseAGPL
+		licenseReadmeTemplate = licenseReadmeAGPL
+	case "Apache":
+		licenseTemplate = licenseApache
+		licenseReadmeTemplate = licenseReadmeApache
+	case "none":
+		return nil
+	default:
+		return errors.New("Unknown license.")
+	}
+
+	err = writeLicense(licenseTemplate, projectName, external.GetUsername(), time.Now().Year())
+	if err != nil {
+		os.Remove(filepath.Join(projectName, "LICENSE"))
+		return err
+	}
+
+	if _, err := os.Stat("README.md"); err == nil {
+		err = writeReadmeLicense(licenseReadmeTemplate, projectName, external.GetUsername(), time.Now().Year())
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func writeLicense(templateText, projectName, username string, year int) error {
+	type data struct {
+		Year     int
+		Username string
+	}
+	tmpl, err := template.New("LICENSE").Parse(templateText)
+	if err != nil {
+		return err
+	}
+
+	file, err := os.Create(filepath.Join(projectName, "LICENSE"))
+	if err != nil {
+		return cli.Error("Failed to create LICENSE file!")
+	}
+	defer file.Close()
+
+	return tmpl.Execute(file, data{
+		Year:     year,
+		Username: username,
+	})
+}
+
+func writeReadmeLicense(templateText, projectName, username string, year int) error {
+	readme, err := os.OpenFile(filepath.Join(projectName, "README.md"), os.O_APPEND|os.O_WRONLY, 0755)
+	if err != nil {
+		return cli.Error("Failed to append license text to README.")
+	}
+	defer readme.Close()
+
+	text := "\n\n## License\n\n"
+	readme.WriteString(text)
+
+	tmpl, err := template.New("README_License").Parse(templateText)
+	if err != nil {
+		return err
+	}
+
+	type data struct {
+		Year     int
+		Username string
+	}
+	return tmpl.Execute(readme, data{
+		Year:     year,
+		Username: username,
+	})
 }
 
 func getCodeGameInfo(baseURL string) (string, string, error) {

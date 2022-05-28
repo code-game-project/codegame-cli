@@ -28,6 +28,8 @@ codegame --help
   - Go
 - Create a new game server
   - Go
+- Initialize Git
+- Create README and LICENSE files
 
 ## Installation
 
