@@ -21,6 +21,14 @@ Help:
 codegame --help
 ```
 
+## Features
+
+- View the CodeGame documentation
+- Create a new client
+  - Go
+- Create a new game server
+  - not implemented
+
 ## License
 
 Copyright (c) 2022 CodeGame Contributors (https://github.com/orgs/code-game-project/people)

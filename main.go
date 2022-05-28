@@ -18,7 +18,6 @@ func main() {
 		fmt.Fprintln(os.Stderr, "\nThe official CodeGame CLI.")
 		fmt.Fprintln(os.Stderr, "\nCommands:")
 		fmt.Fprintln(os.Stderr, "\tnew \tCreate a new project.")
-		fmt.Fprintln(os.Stderr, "\tupdate \tUpdate the CodeGame libraries in the current project.")
 		fmt.Fprintln(os.Stderr, "\tdocs \tOpen the CodeGame documentation in a web browser.")
 		fmt.Fprintln(os.Stderr, "\nAbout: https://github.com/code-game-project")
 		fmt.Fprintln(os.Stderr, "Copyright (c) 2022 CodeGame Contributors (https://github.com/orgs/code-game-project/people)")
