@@ -2,7 +2,7 @@
 ![CG Server Version](https://img.shields.io/badge/GameServer-v0.1+-yellow)
 ![CG Client Version](https://img.shields.io/badge/Client-v0.3+-yellow)
 
-The official [CodeGame](https://github.com/code-game-project) CLI.
+The official [CodeGame](https://code-game.org) CLI.
 
 ## Usage
 
@@ -112,7 +112,7 @@ go build .
 
 ## License
 
-Copyright (c) 2022 CodeGame Contributors (https://github.com/orgs/code-game-project/people)
+Copyright (c) 2022 CodeGame Contributors (https://code-game.org/contributors)
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by

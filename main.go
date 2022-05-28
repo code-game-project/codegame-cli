@@ -15,12 +15,12 @@ func main() {
 	pflag.Usage = func() {
 		fmt.Fprintf(os.Stderr, "Usage: %s <command> [...]\n", os.Args[0])
 		fmt.Fprintln(os.Stderr, "\nDescription:")
-		fmt.Fprintln(os.Stderr, "\nThe official CodeGame CLI.")
+		fmt.Fprintln(os.Stderr, "The official CodeGame CLI.")
 		fmt.Fprintln(os.Stderr, "\nCommands:")
 		fmt.Fprintln(os.Stderr, "\tnew \tCreate a new project.")
 		fmt.Fprintln(os.Stderr, "\tdocs \tOpen the CodeGame documentation in a web browser.")
-		fmt.Fprintln(os.Stderr, "\nAbout: https://github.com/code-game-project")
-		fmt.Fprintln(os.Stderr, "Copyright (c) 2022 CodeGame Contributors (https://github.com/orgs/code-game-project/people)")
+		fmt.Fprintln(os.Stderr, "\nAbout: https://code-game.org")
+		fmt.Fprintln(os.Stderr, "Copyright (c) 2022 CodeGame Contributors (https://code-game.org/contributors)")
 		pflag.PrintDefaults()
 	}
 	pflag.Parse()
