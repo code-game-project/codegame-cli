@@ -58,7 +58,25 @@ func New() error {
 }
 
 func newServer(projectName string) error {
-	return cli.Error("Not implemented.")
+	var language string
+	if pflag.NArg() >= 3 {
+		language = strings.ToLower(pflag.Arg(2))
+	} else {
+		var err error
+		language, err = cli.Select("In which language do you want to write your project?", []string{"Go"}, []string{"go"})
+		if err != nil {
+			return err
+		}
+	}
+
+	var err error
+	switch language {
+	case "go":
+		err = newGoServer(projectName)
+	default:
+		return cli.Error("Unsupported language: %s", language)
+	}
+	return err
 }
 
 func newClient(projectName string) error {
@@ -109,15 +127,11 @@ func newClient(projectName string) error {
 
 	switch language {
 	case "go":
-		err = newClientGo(projectName, url, cgVersion)
+		err = newGoClient(projectName, url, cgVersion)
 	default:
 		return cli.Error("Unsupported language: %s", language)
 	}
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return err
 }
 
 func getCodeGameInfo(baseURL string) (string, string, error) {

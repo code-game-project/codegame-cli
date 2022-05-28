@@ -1,6 +1,7 @@
 package external
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"os"
@@ -9,9 +10,36 @@ import (
 	"strings"
 
 	"github.com/adrg/xdg"
+	"github.com/code-game-project/codegame-cli/cli"
 )
 
 var cgGenEventsPath = filepath.Join(xdg.DataHome, "codegame", "bin", "cg-gen-events")
+
+func LatestGithubTag(owner, repo string) (string, error) {
+	res, err := http.Get(fmt.Sprintf("https://api.github.com/repos/%s/%s/tags", owner, repo))
+	if err != nil || res.StatusCode != http.StatusOK || !HasContentType(res.Header, "application/json") {
+		return "", cli.Error("Couldn't access git tags from 'github.com/%s/%s'.", owner, repo)
+	}
+	defer res.Body.Close()
+	type response []struct {
+		Name string `json:"name"`
+	}
+	var data response
+	err = json.NewDecoder(res.Body).Decode(&data)
+	if err != nil {
+		return "", cli.Error("Couldn't decode git tag data.")
+	}
+	return data[0].Name, nil
+}
+
+func LatestCGEVersion() (string, error) {
+	tag, err := LatestGithubTag("code-game-project", "cg-gen-events")
+	if err != nil {
+		return "", err
+	}
+
+	return strings.TrimPrefix(strings.Join(strings.Split(tag, ".")[:2], "."), "v"), nil
+}
 
 func InstallCGGenEvents(cgeVersion string) error {
 	exeName := fmt.Sprintf("cg-gen-events-%s", strings.ReplaceAll(cgeVersion, ".", "_"))

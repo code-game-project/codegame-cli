@@ -27,7 +27,7 @@ codegame --help
 - Create a new client
   - Go
 - Create a new game server
-  - not implemented
+  - Go
 
 ## Installation
 
