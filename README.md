@@ -29,6 +29,89 @@ codegame --help
 - Create a new game server
   - not implemented
 
+## Installation
+
+### Windows
+
+1. Open the Start menu
+2. Search for `powershell`
+3. Hit `Run as Administrator`
+4. Paste the following commands and hit enter:
+
+#### Install
+
+```powershell
+Invoke-WebRequest -Uri "https://github.com/code-game-project/codegame-cli/releases/latest/download/codegame-cli-windows-amd64.zip" -OutFile "C:\Program Files\codegame-cli.zip"
+Expand-Archive -LiteralPath "C:\Program Files\codegame-cli.zip" -DestinationPath "C:\Program Files\codegame-cli"
+rm "C:\Program Files\codegame-cli.zip"
+Set-ItemProperty -Path 'Registry::HKEY_LOCAL_MACHINE\System\CurrentControlSet\Control\Session Manager\Environment' -Name PATH -Value "$((Get-ItemProperty -Path 'Registry::HKEY_LOCAL_MACHINE\System\CurrentControlSet\Control\Session Manager\Environment' -Name PATH).path);C:\Program Files\codegame-cli"
+```
+
+**IMPORTANT:** Please reboot for the installation to take effect.
+
+#### Update
+
+```powershell
+rm -r -fo "C:\Program Files\codegame-cli"
+Invoke-WebRequest -Uri "https://github.com/code-game-project/codegame-cli/releases/latest/download/codegame-cli-windows-amd64.zip" -OutFile "C:\Program Files\codegame-cli.zip"
+Expand-Archive -LiteralPath "C:\Program Files\codegame-cli.zip" -DestinationPath "C:\Program Files\codegame-cli"
+rm "C:\Program Files\codegame-cli.zip"
+```
+
+### macOS
+
+Open the Terminal application, paste the command for your architecture and hit enter.
+
+To update, simply run the command again.
+
+#### x86_64
+
+```sh
+curl -L https://github.com/code-game-project/codegame-cli/releases/latest/download/codegame-cli-darwin-amd64.tar.gz | tar -xz codegame && sudo mv codegame /usr/local/bin
+```
+
+#### ARM64
+
+```sh
+curl -L https://github.com/code-game-project/codegame-cli/releases/latest/download/codegame-cli-darwin-arm64.tar.gz | tar -xz codegame && sudo mv codegame /usr/local/bin
+```
+
+### Linux
+
+Open a terminal, paste the command for your architecture and hit enter.
+
+To update, simply run the command again.
+
+#### x86_64
+
+```sh
+curl -L https://github.com/code-game-project/codegame-cli/releases/latest/download/codegame-cli-linux-amd64.tar.gz | tar -xz codegame && sudo mv codegame /usr/local/bin
+```
+
+#### ARM64
+
+```sh
+curl -L https://github.com/code-game-project/codegame-cli/releases/latest/download/codegame-cli-linux-arm64.tar.gz | tar -xz codegame && sudo mv codegame /usr/local/bin
+```
+
+### Other
+
+You can download a prebuilt binary file for your operating system on the [releases](https://github.com/code-game-project/codegame-cli/releases) page.
+
+You might need to make the file executable before running it.
+
+### Compiling from source
+
+#### Prerequisites
+
+- [Go](https://go.dev/) 1.18+
+
+```sh
+git clone https://github.com/code-game-project/codegame-cli.git
+cd codegame-cli
+go build .
+```
+
 ## License
 
 Copyright (c) 2022 CodeGame Contributors (https://github.com/orgs/code-game-project/people)
