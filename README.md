@@ -1,9 +1,22 @@
 # codegame-cli
+![CG Client Version](https://img.shields.io/badge/Client-v0.3+-yellow)
+![CG Server Version](https://img.shields.io/badge/Client-v0.1+-yellow)
 
-The official CodeGame CLI.
+The official [CodeGame](https://github.com/code-game-project) CLI.
 
 ## Usage
 
+View the CodeGame documentation:
+```sh
+codegame docs
+```
+
+Create a new project:
+```sh
+codegame new
+```
+
+Help:
 ```sh
 codegame --help
 ```
