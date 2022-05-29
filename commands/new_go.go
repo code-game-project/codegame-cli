@@ -34,13 +34,21 @@ func newGoClient(projectName, serverURL, cgVersion string) error {
 		return err
 	}
 
+	out, err := external.ExecuteInDirHidden(projectName, "go", "mod", "init", module)
+	if err != nil {
+		if out != "" {
+			cli.Error(out)
+		}
+		return err
+	}
+
 	cli.Begin("Installing correct go-client version...")
 	libraryURL, libraryTag, err := getGoClientLibraryURL(projectName, cgVersion)
 	if err != nil {
 		return err
 	}
 
-	out, err := external.ExecuteInDirHidden(projectName, "go", "get", fmt.Sprintf("%s@%s", libraryURL, libraryTag))
+	out, err = external.ExecuteInDirHidden(projectName, "go", "get", fmt.Sprintf("%s@%s", libraryURL, libraryTag))
 	if err != nil {
 		if out != "" {
 			cli.Error(out)
@@ -50,7 +58,7 @@ func newGoClient(projectName, serverURL, cgVersion string) error {
 	cli.Finish()
 
 	cli.Begin("Creating project template...")
-	err = createGoClientTemplate(projectName, module, serverURL, libraryURL)
+	err = createGoClientTemplate(projectName, serverURL, libraryURL)
 	if err != nil {
 		return err
 	}
@@ -81,15 +89,7 @@ func newGoClient(projectName, serverURL, cgVersion string) error {
 	return nil
 }
 
-func createGoClientTemplate(projectName, module, serverURL, libraryURL string) error {
-	out, err := external.ExecuteInDirHidden(projectName, "go", "mod", "init", module)
-	if err != nil {
-		if out != "" {
-			cli.Error(out)
-		}
-		return err
-	}
-
+func createGoClientTemplate(projectName, serverURL, libraryURL string) error {
 	tmpl, err := template.New("main.go").Parse(goClientMainTemplate)
 	if err != nil {
 		return err
@@ -143,6 +143,14 @@ func newGoServer(projectName string) error {
 		return err
 	}
 
+	out, err := external.ExecuteInDirHidden(projectName, "go", "mod", "init", module)
+	if err != nil {
+		if out != "" {
+			cli.Error(out)
+		}
+		return err
+	}
+
 	cli.Begin("Fetching latest version numbers...")
 	cgeVersion, err := external.LatestCGEVersion()
 	if err != nil {
@@ -164,7 +172,7 @@ func newGoServer(projectName string) error {
 
 	cli.Begin("Installing dependencies...")
 
-	out, err := external.ExecuteInDirHidden(projectName, "go", "mod", "tidy")
+	out, err = external.ExecuteInDirHidden(projectName, "go", "mod", "tidy")
 	if err != nil {
 		if out != "" {
 			cli.Error(out)
@@ -190,15 +198,7 @@ func newGoServer(projectName string) error {
 }
 
 func createGoServerTemplate(projectName, module, cgeVersion, libraryURL string) error {
-	out, err := external.ExecuteInDirHidden(projectName, "go", "mod", "init", module)
-	if err != nil {
-		if out != "" {
-			cli.Error(out)
-		}
-		return err
-	}
-
-	err = executeGoServerTemplate(goServerMainTemplate, "main.go", projectName, cgeVersion, libraryURL, module)
+	err := executeGoServerTemplate(goServerMainTemplate, "main.go", projectName, cgeVersion, libraryURL, module)
 	if err != nil {
 		return err
 	}
