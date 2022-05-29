@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"math"
 	"mime"
 	"net/http"
 	"os"
@@ -136,6 +135,10 @@ func ClientVersionFromCGVersion(owner, repo, cgVersion string) string {
 		return "latest"
 	}
 
+	return compatibleLibraryVersion(versions, cgVersion)
+}
+
+func compatibleLibraryVersion(versions map[string]string, cgVersion string) string {
 	// check exact match
 	if v, ok := versions[cgVersion]; ok {
 		return v
@@ -181,32 +184,33 @@ func ClientVersionFromCGVersion(owner, repo, cgVersion string) string {
 	// check closest minor version above requested
 	closestMinor := -1
 	for _, v := range compatibleMinorVersions {
-		if v > minor && float64(closestMinor-minor) > float64(v-minor) {
+		if v > minor && (closestMinor == -1 || closestMinor-minor > v-minor) {
 			closestMinor = v
 		}
 	}
 	if closestMinor >= 0 {
-		v := fmt.Sprintf("%s.%d", major, minor)
+		v := versions[fmt.Sprintf("%s.%d", major, closestMinor)]
 		cli.Warn("No exact version match found. Using client library version %s.", v)
 		return v
 	}
 
 	// check closest minor version below requested
-	closestMinor = math.MaxInt
+	closestMinor = -1
 	for _, v := range compatibleMinorVersions {
-		if v < minor && float64(minor-closestMinor) > float64(minor-v) {
+		if v < minor && (closestMinor == -1 || minor-closestMinor > minor-v) {
 			closestMinor = v
 		}
 	}
 	if closestMinor >= 0 {
-		v := fmt.Sprintf("%s.%d", major, minor)
-		cli.Warn("No exact version match found. Using client library version %s.")
+		v := versions[fmt.Sprintf("%s.%d", major, closestMinor)]
+		cli.Warn("No exact version match found. Using client library version %s.", v)
 		return v
 	}
 
 	cli.Warn("No compatible client library version found. Using latest client library version.")
 	return "latest"
 }
+
 func HasContentType(h http.Header, mimetype string) bool {
 	contentType := h.Get("Content-type")
 	if contentType == "" {
