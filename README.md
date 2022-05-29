@@ -24,6 +24,7 @@ codegame --help
 ## Features
 
 - View the CodeGame documentation
+- Automatic version detection and management
 - Create a new client
   - Go
 - Create a new game server
