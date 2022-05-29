@@ -1,5 +1,14 @@
 package main
 
+import (
+	"os"
+	"strconv"
+
+	"{{.LibraryURL}}"
+	"{{.ModulePath}}/{{.PackageName}}"
+	"github.com/spf13/pflag"
+)
+
 func main() {
 	var port int
 	pflag.IntVarP(&port, "port", "p", 0, "The network port of the game server.")

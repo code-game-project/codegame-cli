@@ -1,5 +1,7 @@
 package main
 
+import "{{.LibraryURL}}"
+
 func main() {
 	socket, err := cg.NewSocket("{{.URL}}")
 	if err != nil {
