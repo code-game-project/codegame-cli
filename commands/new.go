@@ -81,7 +81,7 @@ func newServer(projectName string) error {
 		language = strings.ToLower(pflag.Arg(2))
 	} else {
 		var err error
-		language, err = cli.Select("In which language do you want to write your project?", []string{"Go"}, []string{"go"})
+		language, err = cli.Select("Language:", []string{"Go"}, []string{"go"})
 		if err != nil {
 			return err
 		}
@@ -98,7 +98,7 @@ func newServer(projectName string) error {
 }
 
 func newClient(projectName string) error {
-	url, err := cli.Input("Enter the URL of the game server:")
+	url, err := cli.Input("Game server URL:")
 	if err != nil {
 		return err
 	}
@@ -127,7 +127,7 @@ func newClient(projectName string) error {
 		language = strings.ToLower(pflag.Arg(2))
 	} else {
 		var err error
-		language, err = cli.Select("In which language do you want to write your project?", []string{"Go"}, []string{"go"})
+		language, err = cli.Select("Language", []string{"Go"}, []string{"go"})
 		if err != nil {
 			return err
 		}
@@ -157,7 +157,7 @@ func git(projectName string) error {
 		return nil
 	}
 
-	yes, err := cli.YesNo("Do you want to initialize git?", true)
+	yes, err := cli.YesNo("Initialize git?", true)
 	if err != nil {
 		os.RemoveAll(projectName)
 		return err
@@ -177,7 +177,7 @@ func git(projectName string) error {
 }
 
 func readme(projectName string) error {
-	yes, err := cli.YesNo("Create a README file?", true)
+	yes, err := cli.YesNo("Create README?", true)
 	if err != nil {
 		os.RemoveAll(projectName)
 		return err
@@ -220,7 +220,7 @@ var licenseApache string
 var licenseReadmeApache string
 
 func license(projectName string) error {
-	license, err := cli.Select("Select a license", []string{"None", "MIT", "GPLv3", "AGPL", "Apache 2.0"}, []string{"none", "MIT", "GPL", "AGPL", "Apache"})
+	license, err := cli.Select("License", []string{"None", "MIT", "GPLv3", "AGPL", "Apache 2.0"}, []string{"none", "MIT", "GPL", "AGPL", "Apache"})
 	if err != nil {
 		os.RemoveAll(projectName)
 		return err
@@ -315,9 +315,13 @@ func getCodeGameInfo(baseURL string) (string, string, error) {
 		Name      string `json:"name"`
 		CGVersion string `json:"cg_version"`
 	}
-	res, err := http.Get(baseURL + "/info")
-	if err != nil || res.StatusCode != http.StatusOK || !external.HasContentType(res.Header, "application/json") {
-		return "", "", cli.Error("Couldn't access /info endpoint.")
+	url := baseURL + "/info"
+	res, err := http.Get(url)
+	if err != nil || res.StatusCode != http.StatusOK {
+		return "", "", cli.Error("Couldn't access %s.", url)
+	}
+	if !external.HasContentType(res.Header, "application/json") {
+		return "", "", cli.Error("%s doesn't return JSON.", url)
 	}
 	defer res.Body.Close()
 

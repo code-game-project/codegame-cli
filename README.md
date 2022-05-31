@@ -16,6 +16,11 @@ Create a new project:
 codegame new
 ```
 
+Get information about a game server:
+```sh
+codegame info <url>
+```
+
 Help:
 ```sh
 codegame --help
@@ -24,13 +29,15 @@ codegame --help
 ## Features
 
 - View the CodeGame documentation
-- Automatic version detection and management
-- Create a new client
-  - Go
-- Create a new game server
-  - Go
-- Initialize Git
-- Create README and LICENSE files
+- View information about a game server
+- Automatic project setup
+  - CodeGame version detection and management
+  - Create a new client
+    - Go
+  - Create a new game server
+    - Go
+  - Initialize Git
+  - Create README and LICENSE files
 
 ## Installation
 
