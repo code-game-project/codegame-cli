@@ -2,8 +2,12 @@ package external
 
 import (
 	"archive/tar"
+	"archive/zip"
+	"bytes"
 	"compress/gzip"
+	"errors"
 	"io"
+	"io/ioutil"
 	"os"
 )
 
@@ -25,18 +29,48 @@ func UntargzFile(source io.Reader, fileName, outputFileName string) error {
 		}
 
 		info := header.FileInfo()
-		if info.Name() == fileName {
+		if !info.IsDir() && info.Name() == fileName {
 			file, err := os.OpenFile(outputFileName, os.O_CREATE|os.O_TRUNC|os.O_WRONLY, info.Mode())
 			if err != nil {
 				return err
 			}
 			defer file.Close()
 			_, err = io.Copy(file, tarReader)
+			return err
+		}
+	}
+
+	return errors.New("file not found")
+}
+
+func UnzipFile(source io.Reader, fileName, outputFileName string) error {
+	data, err := ioutil.ReadAll(source)
+	if err != nil {
+		return err
+	}
+
+	reader, err := zip.NewReader(bytes.NewReader(data), int64(len(data)))
+	if err != nil {
+		return err
+	}
+
+	for _, f := range reader.File {
+		if !f.FileInfo().IsDir() && f.FileInfo().Name() == fileName {
+			out, err := os.OpenFile(outputFileName, os.O_CREATE|os.O_TRUNC|os.O_WRONLY, f.FileInfo().Mode())
 			if err != nil {
 				return err
 			}
-			return nil
+			defer out.Close()
+			in, err := f.Open()
+			if err != nil {
+				return err
+			}
+			defer in.Close()
+
+			_, err = io.Copy(out, in)
+			return err
 		}
 	}
-	return nil
+
+	return errors.New("file not found")
 }

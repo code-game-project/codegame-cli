@@ -72,6 +72,9 @@ func InstallCGGenEvents(cgeVersion string) error {
 		return err
 	}
 
+	if runtime.GOOS == "windows" {
+		return UnzipFile(res.Body, "cg-gen-events.exe", filepath.Join(cgGenEventsPath, exeName))
+	}
 	return UntargzFile(res.Body, "cg-gen-events", filepath.Join(cgGenEventsPath, exeName))
 }
 
