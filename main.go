@@ -36,9 +36,6 @@ func main() {
 	switch command {
 	case "new":
 		err = commands.New()
-		if err == cli.ErrCanceled {
-			cli.Info(err.Error())
-		}
 	case "docs":
 		err = external.OpenBrowser("https://docs.code-game.org")
 		if err != nil {
