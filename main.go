@@ -30,6 +30,8 @@ func main() {
 		os.Exit(1)
 	}
 
+	external.CheckVersion()
+
 	command := strings.ToLower(pflag.Arg(0))
 
 	var err error

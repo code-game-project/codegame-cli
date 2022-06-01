@@ -2,6 +2,7 @@ package external
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
 	"os"
@@ -18,7 +19,7 @@ var cgGenEventsPath = filepath.Join(xdg.DataHome, "codegame", "bin", "cg-gen-eve
 func LatestGithubTag(owner, repo string) (string, error) {
 	res, err := http.Get(fmt.Sprintf("https://api.github.com/repos/%s/%s/tags", owner, repo))
 	if err != nil || res.StatusCode != http.StatusOK || !HasContentType(res.Header, "application/json") {
-		return "", cli.Error("Couldn't access git tags from 'github.com/%s/%s'.", owner, repo)
+		return "", fmt.Errorf("failed to access git tags from 'github.com/%s/%s'.", owner, repo)
 	}
 	defer res.Body.Close()
 	type response []struct {
@@ -27,7 +28,7 @@ func LatestGithubTag(owner, repo string) (string, error) {
 	var data response
 	err = json.NewDecoder(res.Body).Decode(&data)
 	if err != nil {
-		return "", cli.Error("Couldn't decode git tag data.")
+		return "", errors.New("failed to decode git tag data.")
 	}
 	return data[0].Name, nil
 }
@@ -35,7 +36,7 @@ func LatestGithubTag(owner, repo string) (string, error) {
 func LatestCGEVersion() (string, error) {
 	tag, err := LatestGithubTag("code-game-project", "cg-gen-events")
 	if err != nil {
-		return "", err
+		return "", cli.Error("Couldn't determine the latest CGE version: %s", err)
 	}
 
 	return strings.TrimPrefix(strings.Join(strings.Split(tag, ".")[:2], "."), "v"), nil
