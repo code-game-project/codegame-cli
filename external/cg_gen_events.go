@@ -42,19 +42,14 @@ func LatestCGEVersion() (string, error) {
 	return strings.TrimPrefix(strings.Join(strings.Split(tag, ".")[:2], "."), "v"), nil
 }
 
-func InstallCGGenEvents(cgeVersion string) error {
-	exeName := fmt.Sprintf("cg-gen-events-%s", strings.ReplaceAll(cgeVersion, ".", "_"))
+func InstallCGGenEvents(version string) (string, error) {
+	exeName := fmt.Sprintf("cg-gen-events_%s", strings.ReplaceAll(version, ".", "-"))
 	if runtime.GOOS == "windows" {
 		exeName = exeName + ".exe"
 	}
 
 	if _, err := os.Stat(filepath.Join(cgGenEventsPath, exeName)); err == nil {
-		return nil
-	}
-
-	version, err := GithubTagFromVersion("code-game-project", "cg-gen-events", cgeVersion)
-	if err != nil {
-		return err
+		return exeName, nil
 	}
 
 	filename := fmt.Sprintf("cg-gen-events-%s-%s.tar.gz", runtime.GOOS, runtime.GOARCH)
@@ -62,35 +57,49 @@ func InstallCGGenEvents(cgeVersion string) error {
 		filename = fmt.Sprintf("cg-gen-events-%s-%s.zip", runtime.GOOS, runtime.GOARCH)
 	}
 
-	res, err := http.Get(fmt.Sprintf("https://github.com/code-game-project/cg-gen-events/releases/download/%s/%s", version, filename))
+	res, err := http.Get(fmt.Sprintf("https://github.com/code-game-project/cg-gen-events/releases/download/v%s/%s", version, filename))
 	if err != nil {
-		return err
+		return "", err
 	}
 	defer res.Body.Close()
 
 	err = os.MkdirAll(cgGenEventsPath, 0755)
 	if err != nil {
-		return err
+		return "", err
 	}
 
 	if runtime.GOOS == "windows" {
-		return UnzipFile(res.Body, "cg-gen-events.exe", filepath.Join(cgGenEventsPath, exeName))
+		return exeName, UnzipFile(res.Body, "cg-gen-events.exe", filepath.Join(cgGenEventsPath, exeName))
 	}
-	return UntargzFile(res.Body, "cg-gen-events", filepath.Join(cgGenEventsPath, exeName))
+	return exeName, UntargzFile(res.Body, "cg-gen-events", filepath.Join(cgGenEventsPath, exeName))
 }
 
 func CGGenEvents(outputDir, url, cgeVersion, language string) error {
-	exeName := fmt.Sprintf("cg-gen-events-%s", strings.ReplaceAll(cgeVersion, ".", "_"))
-	if runtime.GOOS == "windows" {
-		exeName = exeName + ".exe"
+	version, err := GithubTagFromVersion("code-game-project", "cg-gen-events", cgeVersion)
+	if err != nil {
+		return err
+	}
+	version = strings.TrimPrefix(version, "v")
+
+	exeName, err := InstallCGGenEvents(version)
+	if err != nil {
+		return err
 	}
 
-	if _, err := os.Stat(filepath.Join(cgGenEventsPath, exeName)); err != nil {
-		err = InstallCGGenEvents(cgeVersion)
-		if err != nil {
-			return err
+	binaries, err := os.ReadDir(cgGenEventsPath)
+	if err != nil {
+		return err
+	}
+	for _, b := range binaries {
+		info, err := b.Info()
+		if err == nil && info.Name() != exeName && strings.HasPrefix(info.Name(), fmt.Sprintf("cg-gen-events_%s", strings.ReplaceAll(cgeVersion, ".", "-"))) {
+			os.Remove(filepath.Join(cgGenEventsPath, info.Name()))
 		}
 	}
 
-	return Execute(filepath.Join(cgGenEventsPath, exeName), url, "--languages", language, "--output", outputDir)
+	out, err := ExecuteHidden(filepath.Join(cgGenEventsPath, exeName), url, "--languages", language, "--output", outputDir)
+	if err != nil {
+		cli.Error(out)
+	}
+	return err
 }
