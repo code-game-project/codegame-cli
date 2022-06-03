@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -102,4 +103,84 @@ func CGGenEvents(outputDir, url, cgeVersion, language string) error {
 		cli.Error(out)
 	}
 	return err
+}
+
+// requires cgeVersion >= 0.3
+func GetEventNames(url, cgeVersion string) ([]string, error) {
+	output := os.TempDir()
+	err := CGGenEvents(output, url, cgeVersion, "json")
+	if err != nil {
+		return nil, err
+	}
+
+	type event struct {
+		Name string `json:"name"`
+	}
+	type data struct {
+		Events []event `json:"events"`
+	}
+
+	path := filepath.Join(output, "events.json")
+
+	file, err := os.Open(path)
+	if err != nil {
+		return nil, err
+	}
+	defer os.Remove(path)
+	defer file.Close()
+
+	var object data
+	err = json.NewDecoder(file).Decode(&object)
+	if err != nil {
+		return nil, err
+	}
+
+	names := make([]string, len(object.Events))
+	for i, event := range object.Events {
+		names[i] = event.Name
+	}
+	return names, nil
+}
+
+func GetCGEVersion(baseURL string) (string, error) {
+	res, err := http.Get(baseURL + "/events")
+	if err != nil || res.StatusCode != http.StatusOK || !HasContentType(res.Header, "text/plain") {
+		return "", cli.Error("Couldn't access /events endpoint.")
+	}
+	defer res.Body.Close()
+
+	data, err := io.ReadAll(res.Body)
+	if err != nil {
+		return "", cli.Error("Couldn't read /events file.")
+	}
+	return ParseCGEVersion([]rune(string(data))), nil
+}
+
+func ParseCGEVersion(runes []rune) string {
+	index := 0
+	commentNestingLevel := 0
+	for index < len(runes) && (runes[index] == ' ' || runes[index] == '\r' || runes[index] == '\n' || runes[index] == '\t' || (index < len(runes)-1 && runes[index] == '/' && runes[index+1] == '*') || (index < len(runes)-1 && runes[index] == '*' && runes[index+1] == '/') || (index < len(runes)-1 && runes[index] == '/' && runes[index+1] == '/') || commentNestingLevel > 0) {
+		if runes[index] == '/' {
+			if runes[index+1] == '/' {
+				for index < len(runes) && runes[index] != '\n' {
+					index++
+				}
+			} else {
+				commentNestingLevel++
+			}
+		}
+		if runes[index] == '*' {
+			commentNestingLevel--
+		}
+		index++
+	}
+
+	words := strings.Fields(string(runes[index:]))
+	for i, w := range words {
+		if w == "version" && i < len(words)-1 {
+			return words[i+1]
+		}
+	}
+
+	return ""
 }

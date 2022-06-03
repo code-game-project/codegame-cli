@@ -2,19 +2,14 @@ package commands
 
 import (
 	"fmt"
-	"os"
 	"path/filepath"
 	"strings"
-	"text/template"
 
 	_ "embed"
 
 	"github.com/code-game-project/codegame-cli/cli"
 	"github.com/code-game-project/codegame-cli/external"
 )
-
-//go:embed templates/go/client/main.go.tmpl
-var goClientMainTemplate string
 
 //go:embed templates/go/server/main.go.tmpl
 var goServerMainTemplate string
@@ -25,10 +20,10 @@ var goServerGameTemplate string
 //go:embed templates/go/server/events.cge.tmpl
 var goServerCGETemplate string
 
-//go:embed templates/go/server/events.go.tmpl
+//go:embed templates/go/server/event_definitions.go.tmpl
 var goServerEventsTemplate string
 
-func newGoClient(projectName, serverURL, cgVersion string) error {
+func newGoClient(projectName, gameName, serverURL, cgVersion, cgeVersion string) error {
 	module, err := cli.Input("Project module path:")
 	if err != nil {
 		return err
@@ -42,12 +37,25 @@ func newGoClient(projectName, serverURL, cgVersion string) error {
 		return err
 	}
 
-	cli.Begin("Installing correct go-client version...")
 	libraryURL, libraryTag, err := getGoClientLibraryURL(projectName, cgVersion)
 	if err != nil {
 		return err
 	}
 
+	cgeMajor, cgeMinor, _, err := external.ParseVersion(cgeVersion)
+	if err != nil {
+		return cli.Error(err.Error())
+	}
+
+	wrappers := false
+	if cgeMajor > 0 || cgeMinor >= 3 {
+		wrappers, err = cli.YesNo("Do you want to generate helper functions?", true)
+		if err != nil {
+			return err
+		}
+	}
+
+	cli.Begin("Installing correct go-client version...")
 	out, err = external.ExecuteInDirHidden(projectName, "go", "get", fmt.Sprintf("%s@%s", libraryURL, libraryTag))
 	if err != nil {
 		if out != "" {
@@ -58,7 +66,7 @@ func newGoClient(projectName, serverURL, cgVersion string) error {
 	cli.Finish()
 
 	cli.Begin("Creating project template...")
-	err = createGoClientTemplate(projectName, serverURL, libraryURL)
+	err = createGoClientTemplate(libraryTag, projectName, module, gameName, serverURL, libraryURL, cgeVersion, wrappers)
 	if err != nil {
 		return err
 	}
@@ -89,27 +97,12 @@ func newGoClient(projectName, serverURL, cgVersion string) error {
 	return nil
 }
 
-func createGoClientTemplate(projectName, serverURL, libraryURL string) error {
-	tmpl, err := template.New("main.go").Parse(goClientMainTemplate)
+func createGoClientTemplate(libraryTag, projectName, modulePath, gameName, serverURL, libraryURL, cgeVersion string, wrappers bool) error {
+	err := createGoClientTemplatev0_8(projectName, modulePath, gameName, serverURL, libraryURL, cgeVersion, wrappers)
 	if err != nil {
-		return err
+		cli.Error(err.Error())
 	}
-
-	file, err := os.Create(filepath.Join(projectName, "main.go"))
-	if err != nil {
-		return err
-	}
-	defer file.Close()
-
-	type data struct {
-		URL        string
-		LibraryURL string
-	}
-
-	return tmpl.Execute(file, data{
-		URL:        serverURL,
-		LibraryURL: libraryURL,
-	})
+	return err
 }
 
 func getGoClientLibraryURL(projectName, cgVersion string) (url string, tag string, err error) {
@@ -215,26 +208,10 @@ func createGoServerTemplate(projectName, module, cgeVersion, libraryURL string) 
 		return err
 	}
 
-	return executeGoServerTemplate(goServerEventsTemplate, filepath.Join(packageName, "events.go"), projectName, cgeVersion, libraryURL, module)
+	return executeGoServerTemplate(goServerEventsTemplate, filepath.Join(packageName, "event_definitions.go"), projectName, cgeVersion, libraryURL, module)
 }
 
 func executeGoServerTemplate(templateText, fileName, projectName, cgeVersion, libraryURL, modulePath string) error {
-	tmpl, err := template.New(fileName).Parse(templateText)
-	if err != nil {
-		return err
-	}
-
-	err = os.MkdirAll(filepath.Join(projectName, filepath.Dir(fileName)), 0755)
-	if err != nil {
-		return err
-	}
-
-	file, err := os.Create(filepath.Join(projectName, fileName))
-	if err != nil {
-		return err
-	}
-	defer file.Close()
-
 	type data struct {
 		Name          string
 		PackageName   string
@@ -244,7 +221,7 @@ func executeGoServerTemplate(templateText, fileName, projectName, cgeVersion, li
 		ModulePath    string
 	}
 
-	return tmpl.Execute(file, data{
+	return execTemplate(templateText, filepath.Join(projectName, fileName), data{
 		Name:          projectName,
 		PackageName:   strings.ReplaceAll(strings.ReplaceAll(projectName, "_", ""), "-", ""),
 		SnakeCaseName: strings.ReplaceAll(projectName, "-", "_"),

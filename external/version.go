@@ -47,3 +47,33 @@ func getLatestVersion() (string, error) {
 	os.WriteFile(filepath.Join(cacheDir, "latest_version"), []byte(fmt.Sprintf("%d\n%s", time.Now().Unix(), version)), 0644)
 	return version, nil
 }
+
+func ParseVersion(version string) (int, int, int, error) {
+	parts := strings.Split(strings.TrimPrefix(version, "v"), ".")
+
+	var major, minor, patch int
+	var err error
+
+	if len(parts) >= 1 {
+		major, err = strconv.Atoi(parts[0])
+		if err != nil {
+			return 0, 0, 0, fmt.Errorf("invalid version string: %s", version)
+		}
+	}
+
+	if len(parts) >= 2 {
+		minor, err = strconv.Atoi(parts[1])
+		if err != nil {
+			return 0, 0, 0, fmt.Errorf("invalid version string: %s", version)
+		}
+	}
+
+	if len(parts) >= 3 {
+		patch, err = strconv.Atoi(parts[2])
+		if err != nil {
+			return 0, 0, 0, fmt.Errorf("invalid version string: %s", version)
+		}
+	}
+
+	return major, minor, patch, nil
+}

@@ -1,0 +1,100 @@
+package {{.PackageName}}
+
+import (
+	"fmt"
+
+	"{{.LibraryURL}}"
+)
+
+type Game struct {
+	Id     string
+	socket *cg.Socket
+}
+
+type Player struct {
+	Id       string
+	Username string
+}
+
+// CreateAndJoinGame creates a new game and joins it immediately after.
+func CreateAndJoinGame(public bool, username string) (*Game, error) {
+	socket, err := cg.NewSocket("{{.URL}}")
+	if err != nil {
+		return nil, fmt.Errorf("failed to connect to server: %s", err)
+	}
+
+	gameId, err := socket.Create(public)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create game: %s", err)
+	}
+
+	err = socket.Join(gameId, username)
+	if err != nil {
+		return nil, fmt.Errorf("failed to join game: %s", err)
+	}
+
+	return &Game{
+		Id:     gameId,
+		socket: socket,
+	}, nil
+}
+
+// JoinGame joins the game with the specified id.
+func JoinGame(gameId, username string) (*Game, error) {
+	socket, err := cg.NewSocket("{{.URL}}")
+	if err != nil {
+		return nil, fmt.Errorf("failed to connect to server: %s", err)
+	}
+
+	err = socket.Join(gameId, username)
+	if err != nil {
+		return nil, fmt.Errorf("failed to join game: %s", err)
+	}
+
+	return &Game{
+		Id:     gameId,
+		socket: socket,
+	}, nil
+}
+
+// ReconnectGame joins a previous session from the session store.
+func ReconnectGame(username string) (*Game, error) {
+	socket, err := cg.NewSocket("{{.URL}}")
+	if err != nil {
+		return nil, fmt.Errorf("failed to connect to server: %s", err)
+	}
+
+	err = socket.RestoreSession(username)
+	if err != nil {
+		return nil, fmt.Errorf("failed to reconnect: %s", err)
+	}
+
+	return &Game{
+		Id:     socket.Session().GameId,
+		socket: socket,
+	}, nil
+}
+
+// Run starts the event loop (blocking).
+func (g *Game) Run() error {
+	return g.socket.RunEventLoop()
+}
+
+// Update looks for new events in the queue and triggers their registered callbacks. (not needed when using 'Run')
+func (g *Game) Update() error {
+	_, ok, err := g.socket.NextEvent()
+	for ok && err == nil {
+		_, ok, err = g.socket.NextEvent()
+	}
+	return err
+}
+
+// Disconnect closes the underlying socket connection.
+func (g *Game) Disconnect() error {
+	return g.socket.Close()
+}
+
+// Leave leaves the game and removes the session from disk.
+func (g *Game) Leave() error {
+	return g.socket.Leave()
+}

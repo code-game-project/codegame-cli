@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -117,7 +116,7 @@ func newClient(projectName string) error {
 	if err != nil {
 		return err
 	}
-	cgeVersion, err := getCGEVersion(baseURL(url, ssl))
+	cgeVersion, err := external.GetCGEVersion(baseURL(url, ssl))
 	if err != nil {
 		return err
 	}
@@ -133,23 +132,30 @@ func newClient(projectName string) error {
 		}
 	}
 
+	switch language {
+	case "go":
+		err = newGoClient(projectName, name, url, cgVersion, cgeVersion)
+	default:
+		return cli.Error("Unsupported language: %s", language)
+	}
+	if err != nil {
+		return err
+	}
+
 	eventsOutput := projectName
 	if language == "go" {
 		eventsOutput = filepath.Join(projectName, strings.ReplaceAll(strings.ReplaceAll(name, "-", ""), "_", ""))
 	}
 
+	cli.Begin("Generating event definitions...")
 	err = external.CGGenEvents(eventsOutput, baseURL(url, ssl), cgeVersion, language)
 	if err != nil {
 		cli.Error("Failed to generate event definitions: %s", err)
+		return err
 	}
+	cli.Finish()
 
-	switch language {
-	case "go":
-		err = newGoClient(projectName, url, cgVersion)
-	default:
-		return cli.Error("Unsupported language: %s", language)
-	}
-	return err
+	return nil
 }
 
 func git(projectName string) error {
@@ -334,47 +340,24 @@ func getCodeGameInfo(baseURL string) (string, string, error) {
 	return data.Name, data.CGVersion, nil
 }
 
-func getCGEVersion(baseURL string) (string, error) {
-	res, err := http.Get(baseURL + "/events")
-	if err != nil || res.StatusCode != http.StatusOK || !external.HasContentType(res.Header, "text/plain") {
-		return "", cli.Error("Couldn't access /events endpoint.")
-	}
-	defer res.Body.Close()
-
-	data, err := io.ReadAll(res.Body)
+func execTemplate(templateText, path string, data any) error {
+	err := os.MkdirAll(filepath.Join(filepath.Dir(path)), 0755)
 	if err != nil {
-		return "", cli.Error("Couldn't read /events file.")
-	}
-	return parseCGEVersion([]rune(string(data))), nil
-}
-
-func parseCGEVersion(runes []rune) string {
-	index := 0
-	commentNestingLevel := 0
-	for index < len(runes) && (runes[index] == ' ' || runes[index] == '\r' || runes[index] == '\n' || runes[index] == '\t' || (index < len(runes)-1 && runes[index] == '/' && runes[index+1] == '*') || (index < len(runes)-1 && runes[index] == '*' && runes[index+1] == '/') || (index < len(runes)-1 && runes[index] == '/' && runes[index+1] == '/') || commentNestingLevel > 0) {
-		if runes[index] == '/' {
-			if runes[index+1] == '/' {
-				for index < len(runes) && runes[index] != '\n' {
-					index++
-				}
-			} else {
-				commentNestingLevel++
-			}
-		}
-		if runes[index] == '*' {
-			commentNestingLevel--
-		}
-		index++
+		return err
 	}
 
-	words := strings.Fields(string(runes[index:]))
-	for i, w := range words {
-		if w == "version" && i < len(words)-1 {
-			return words[i+1]
-		}
+	tmpl, err := template.New(path).Parse(templateText)
+	if err != nil {
+		return err
 	}
 
-	return ""
+	file, err := os.Create(filepath.Join(path))
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+
+	return tmpl.Execute(file, data)
 }
 
 func baseURL(domain string, ssl bool) string {

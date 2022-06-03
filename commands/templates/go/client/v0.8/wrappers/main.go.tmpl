@@ -1,0 +1,48 @@
+package main
+
+import(
+	"fmt"
+	"os"
+	"{{.ModulePath}}/{{.PackageName}}"
+
+	"github.com/spf13/pflag"
+)
+
+func main() {
+	var create bool
+	pflag.BoolVarP(&create, "create", "c", false, "Create a new game.")
+	var public bool
+	pflag.BoolVarP(&public, "public", "p", false, "Make the created game public.")
+	var gameId string
+	pflag.StringVarP(&gameId, "join", "j", "", "Join a game.")
+	pflag.Parse()
+
+	if pflag.NArg() != 1 {
+		fmt.Fprintf(os.Stderr, "USAGE: %s [OPTIONS] <username>\n", os.Args[0])
+		fmt.Fprintf(os.Stderr, "For help use --help.\n")
+		os.Exit(1)
+	}
+	username := pflag.Arg(0)
+
+	var game *{{.PackageName}}.Game
+	var err error
+
+	if create {
+		game, err = {{.PackageName}}.CreateAndJoinGame(public, username)
+	} else if gameId != "" {
+		game, err = {{.PackageName}}.JoinGame(gameId, username)
+	} else {
+		game, err = {{.PackageName}}.ReconnectGame(username)
+	}
+
+	if err != nil {
+		fmt.Println("Couldn't join game:", err)
+		os.Exit(1)
+	}
+
+	fmt.Println("GameID:", game.Id)
+
+	// TODO register event listeners
+
+	game.Run()
+}

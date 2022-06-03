@@ -1,0 +1,51 @@
+package {{.PackageName}}
+
+import "{{.LibraryURL}}"
+
+{{range .Events}}
+// On{{.PascalName}}Event triggers the callback every time the `{{.Name}}` event is received.
+func (g *Game) On{{.PascalName}}Event(callback func(origin Player, data {{.PascalName}}EventData)) cg.CallbackId {
+	return g.socket.On({{.PascalName}}Event, func(origin string, event cg.Event) {
+		var data {{.PascalName}}EventData
+		err := event.UnmarshalData(&data)
+		if err == nil {
+			username := g.socket.ResolveUsername(origin)
+			if origin == "server" {
+				username = "Server"
+			}
+			callback(Player{
+				Id:       origin,
+				Username: username,
+			}, data)
+		}
+	})
+}
+
+// On{{.PascalName}}EventOnce triggers the callback the next time the `{{.Name}}` event is received.
+func (g *Game) On{{.PascalName}}EventOnce(callback func(origin Player, data {{.PascalName}}EventData)) cg.CallbackId {
+	return g.socket.Once({{.PascalName}}Event, func(origin string, event cg.Event) {
+		var data {{.PascalName}}EventData
+		err := event.UnmarshalData(&data)
+		if err == nil {
+			username := g.socket.ResolveUsername(origin)
+			if origin == "server" {
+				username = "Server"
+			}
+			callback(Player{
+				Id:       origin,
+				Username: username,
+			}, data)
+		}
+	})
+}
+
+// Send{{.PascalName}}Event sends a `{{.Name}}` event.
+func (g *Game) Send{{.PascalName}}Event(data {{.PascalName}}EventData) error {
+	return g.socket.Send({{.PascalName}}Event, data)
+}
+{{end}}
+
+// RemoveCallback removes the callback with the specified id.
+func (g *Game) RemoveCallback(id cg.CallbackId) {
+	g.socket.RemoveCallback(id)
+}

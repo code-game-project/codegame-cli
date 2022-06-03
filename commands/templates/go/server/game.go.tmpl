@@ -26,7 +26,7 @@ func (g *Game) Run() {
 func (g *Game) handleEvent(player *cg.Player, event cg.Event) {
 	switch event.Name {
 	default:
-		player.Send(player.Id, cg.EventError, cg.EventErrorData{
+		player.Send(player.Id, cg.ErrorEvent, cg.ErrorEventData{
 			Message: fmt.Sprintf("unexpected event: %s", event.Name),
 		})
 	}
