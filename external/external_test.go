@@ -44,7 +44,7 @@ func Test_compatibleLibraryVersion(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := compatibleLibraryVersion(tt.versions, tt.cgVersion); got != tt.want {
+			if got := CompatibleVersion(tt.versions, tt.cgVersion); got != tt.want {
 				t.Errorf("compatibleLibraryVersion() = %v, want %v", got, tt.want)
 			}
 		})

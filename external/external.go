@@ -135,18 +135,18 @@ func ClientVersionFromCGVersion(owner, repo, cgVersion string) string {
 		return "latest"
 	}
 
-	return compatibleLibraryVersion(versions, cgVersion)
+	return CompatibleVersion(versions, cgVersion)
 }
 
-func compatibleLibraryVersion(versions map[string]string, cgVersion string) string {
+func CompatibleVersion(versions map[string]string, version string) string {
 	// check exact match
-	if v, ok := versions[cgVersion]; ok {
+	if v, ok := versions[version]; ok {
 		return v
 	}
 
-	parts := strings.Split(cgVersion, ".")
+	parts := strings.Split(version, ".")
 	if len(parts) < 2 {
-		cli.Warn("Invalid versions.json. Using latest client library version.")
+		cli.Warn("Invalid versions.json. Using latest version.")
 		return "latest"
 	}
 	major := parts[0]
@@ -156,28 +156,28 @@ func compatibleLibraryVersion(versions map[string]string, cgVersion string) stri
 	for v := range versions {
 		clientParts := strings.Split(v, ".")
 		if len(clientParts) < 2 {
-			cli.Warn("Invalid versions.json. Using latest client library version.")
+			cli.Warn("Invalid versions.json. Using latest version.")
 			return "latest"
 		}
 		clientMajor := clientParts[0]
 		if major == clientMajor {
 			minor, err := strconv.Atoi(clientParts[1])
 			if err != nil {
-				cli.Warn("Invalid versions.json. Using latest client library version.")
+				cli.Warn("Invalid versions.json. Using latest version.")
 				return "latest"
 			}
 			compatibleMinorVersions = append(compatibleMinorVersions, minor)
 		}
 	}
 	if len(compatibleMinorVersions) == 0 {
-		cli.Warn("No compatible client library version found. Using latest client library version.")
+		cli.Warn("No compatible version found. Using version.")
 		return "latest"
 	}
 
 	minorStr := parts[1]
 	minor, err := strconv.Atoi(minorStr)
 	if err != nil {
-		cli.Warn("Invalid versions.json. Using latest client library version.")
+		cli.Warn("Invalid versions.json. Using latest version.")
 		return "latest"
 	}
 
@@ -190,7 +190,7 @@ func compatibleLibraryVersion(versions map[string]string, cgVersion string) stri
 	}
 	if closestMinor >= 0 {
 		v := versions[fmt.Sprintf("%s.%d", major, closestMinor)]
-		cli.Warn("No exact version match found. Using client library version %s.", v)
+		cli.Warn("No exact version match found. Using version %s.", v)
 		return v
 	}
 
@@ -203,11 +203,11 @@ func compatibleLibraryVersion(versions map[string]string, cgVersion string) stri
 	}
 	if closestMinor >= 0 {
 		v := versions[fmt.Sprintf("%s.%d", major, closestMinor)]
-		cli.Warn("No exact version match found. Using client library version %s.", v)
+		cli.Warn("No exact version match found. Using version %s.", v)
 		return v
 	}
 
-	cli.Warn("No compatible client library version found. Using latest client library version.")
+	cli.Warn("No compatible version found. Using latest version.")
 	return "latest"
 }
 

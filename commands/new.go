@@ -89,7 +89,7 @@ func newServer(projectName string) error {
 	var err error
 	switch language {
 	case "go":
-		err = newGoServer(projectName)
+		err = external.ExecuteModule(projectName, "go", "latest", "server", "new", "server")
 	default:
 		return cli.Error("Unsupported language: %s", language)
 	}
@@ -132,9 +132,15 @@ func newClient(projectName string) error {
 		}
 	}
 
+	cgeMajor, cgeMinor, _, err := external.ParseVersion(cgeVersion)
+	if err != nil {
+		return cli.Error(err.Error())
+	}
+
 	switch language {
 	case "go":
-		err = newGoClient(projectName, name, url, cgVersion, cgeVersion)
+		goLibraryVersion := external.ClientVersionFromCGVersion("code-game-project", "go-client", cgVersion)
+		err = external.ExecuteModule(projectName, "go", goLibraryVersion, "client", "new", "client", "--library-version="+goLibraryVersion, "--game-name="+name, "--url="+url, fmt.Sprintf("--supports-wrappers=%t", cgeMajor > 0 || cgeMinor >= 3))
 	default:
 		return cli.Error("Unsupported language: %s", language)
 	}
@@ -259,11 +265,8 @@ func license(projectName string) error {
 		return err
 	}
 
-	if _, err := os.Stat("README.md"); err == nil {
+	if _, err := os.Stat(filepath.Join(projectName, "README.md")); err == nil {
 		err = writeReadmeLicense(licenseReadmeTemplate, projectName, external.GetUsername(), time.Now().Year())
-		if err != nil {
-			return err
-		}
 	}
 
 	return nil
