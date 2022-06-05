@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"os"
 	"strings"
 	"unicode/utf8"
 
@@ -35,16 +36,7 @@ func Info() error {
 		}
 	}
 
-	if strings.HasPrefix(url, "http://") {
-		url = strings.TrimPrefix(url, "http://")
-	} else if strings.HasPrefix(url, "https://") {
-		url = strings.TrimPrefix(url, "https://")
-	} else if strings.HasPrefix(url, "ws://") {
-		url = strings.TrimPrefix(url, "ws://")
-	} else if strings.HasPrefix(url, "wss://") {
-		url = strings.TrimPrefix(url, "wss://")
-	}
-	url = strings.TrimSuffix(url, "/")
+	url = trimURL(url)
 
 	info, err := fetchInfo(url)
 	if err != nil {
@@ -52,6 +44,8 @@ func Info() error {
 	}
 
 	printInfo(info)
+
+	cli.Info("\nTo view the documentation of this game run:\n%s docs %s", os.Args[0], url)
 	return nil
 }
 

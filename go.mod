@@ -5,6 +5,7 @@ go 1.18
 require (
 	github.com/AlecAivazis/survey/v2 v2.3.4
 	github.com/adrg/xdg v0.4.0
+	github.com/gomarkdown/markdown v0.0.0-20220603122033-8f3b341fef32
 	github.com/mattn/go-colorable v0.1.12
 	github.com/ogier/pflag v0.0.1
 )

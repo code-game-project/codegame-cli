@@ -21,6 +21,11 @@ Get information about a game server:
 codegame info <url>
 ```
 
+View the documentation of a game:
+```sh
+codegame docs <url>
+```
+
 Help:
 ```sh
 codegame --help

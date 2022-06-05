@@ -12,7 +12,7 @@ import (
 	"github.com/code-game-project/codegame-cli/cli"
 )
 
-const currentVersion = "0.4.1"
+const currentVersion = "0.5.0"
 
 func CheckVersion() {
 	latest, err := getLatestVersion()

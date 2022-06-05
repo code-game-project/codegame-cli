@@ -101,16 +101,7 @@ func newClient(projectName string) error {
 	if err != nil {
 		return err
 	}
-	if strings.HasPrefix(url, "http://") {
-		url = strings.TrimPrefix(url, "http://")
-	} else if strings.HasPrefix(url, "https://") {
-		url = strings.TrimPrefix(url, "https://")
-	} else if strings.HasPrefix(url, "ws://") {
-		url = strings.TrimPrefix(url, "ws://")
-	} else if strings.HasPrefix(url, "wss://") {
-		url = strings.TrimPrefix(url, "wss://")
-	}
-	url = strings.TrimSuffix(url, "/")
+	url = trimURL(url)
 	ssl := isSSL(url)
 	name, cgVersion, err := getCodeGameInfo(baseURL(url, ssl))
 	if err != nil {
@@ -361,6 +352,19 @@ func execTemplate(templateText, path string, data any) error {
 	defer file.Close()
 
 	return tmpl.Execute(file, data)
+}
+
+func trimURL(url string) string {
+	if strings.HasPrefix(url, "http://") {
+		url = strings.TrimPrefix(url, "http://")
+	} else if strings.HasPrefix(url, "https://") {
+		url = strings.TrimPrefix(url, "https://")
+	} else if strings.HasPrefix(url, "ws://") {
+		url = strings.TrimPrefix(url, "ws://")
+	} else if strings.HasPrefix(url, "wss://") {
+		url = strings.TrimPrefix(url, "wss://")
+	}
+	return strings.TrimSuffix(url, "/")
 }
 
 func baseURL(domain string, ssl bool) string {

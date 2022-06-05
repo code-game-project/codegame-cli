@@ -41,10 +41,7 @@ func main() {
 	case "info":
 		err = commands.Info()
 	case "docs":
-		err = external.OpenBrowser("https://docs.code-game.org")
-		if err != nil {
-			cli.Error(err.Error())
-		}
+		err = commands.Docs()
 	default:
 		cli.Error("Unknown command: %s", strings.ToLower(pflag.Arg(0)))
 		pflag.Usage()
