@@ -29,7 +29,7 @@ func New() error {
 		}
 	}
 
-	projectName, err := cli.Input("Project name:")
+	projectName, err := cli.InputAlphanum("Project name:")
 	if err != nil {
 		return err
 	}

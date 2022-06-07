@@ -2,6 +2,7 @@ package cli
 
 import (
 	"errors"
+	"regexp"
 
 	"github.com/AlecAivazis/survey/v2"
 	"github.com/AlecAivazis/survey/v2/terminal"
@@ -16,6 +17,29 @@ func Input(question string) (string, error) {
 	err := survey.AskOne(&survey.Input{
 		Message: question,
 	}, &result, survey.WithValidator(survey.Required))
+	if err == terminal.InterruptErr {
+		err = ErrCanceled
+	}
+	return result, err
+}
+
+var alphanumRegex = regexp.MustCompile(`^[a-zA-Z0-9_\-]*$`)
+
+// Same as Input but only allows 'a'-'z', 'A'-'Z', '0'-'9', '_', '-' characters.
+func InputAlphanum(question string) (string, error) {
+	var result string
+	err := survey.AskOne(&survey.Input{
+		Message: question,
+	}, &result, survey.WithValidator(survey.Required), survey.WithValidator(func(val interface{}) error {
+		text, ok := val.(string)
+		if !ok {
+			return errors.New("Value must be a string")
+		}
+		if !alphanumRegex.MatchString(text) {
+			return errors.New("Value must be alphanumeric")
+		}
+		return nil
+	}))
 	if err == terminal.InterruptErr {
 		err = ErrCanceled
 	}
