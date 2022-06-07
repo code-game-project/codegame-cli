@@ -1,8 +1,8 @@
-package external
+package util
 
 import "testing"
 
-func Test_compatibleLibraryVersion(t *testing.T) {
+func Test_CompatibleLibraryVersion(t *testing.T) {
 	tests := []struct {
 		name      string
 		versions  map[string]string

@@ -1,8 +1,7 @@
-package external
+package util
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -17,23 +16,7 @@ import (
 
 var cgGenEventsPath = filepath.Join(xdg.DataHome, "codegame", "bin", "cg-gen-events")
 
-func LatestGithubTag(owner, repo string) (string, error) {
-	res, err := http.Get(fmt.Sprintf("https://api.github.com/repos/%s/%s/tags", owner, repo))
-	if err != nil || res.StatusCode != http.StatusOK || !HasContentType(res.Header, "application/json") {
-		return "", fmt.Errorf("failed to access git tags from 'github.com/%s/%s'.", owner, repo)
-	}
-	defer res.Body.Close()
-	type response []struct {
-		Name string `json:"name"`
-	}
-	var data response
-	err = json.NewDecoder(res.Body).Decode(&data)
-	if err != nil {
-		return "", errors.New("failed to decode git tag data.")
-	}
-	return data[0].Name, nil
-}
-
+// LatestCGEVersion returns the latest CGE version in the format 'x.y'.
 func LatestCGEVersion() (string, error) {
 	tag, err := LatestGithubTag("code-game-project", "cg-gen-events")
 	if err != nil {
@@ -43,38 +26,7 @@ func LatestCGEVersion() (string, error) {
 	return strings.TrimPrefix(strings.Join(strings.Split(tag, ".")[:2], "."), "v"), nil
 }
 
-func InstallCGGenEvents(version string) (string, error) {
-	exeName := fmt.Sprintf("cg-gen-events_%s", strings.ReplaceAll(version, ".", "-"))
-	if runtime.GOOS == "windows" {
-		exeName = exeName + ".exe"
-	}
-
-	if _, err := os.Stat(filepath.Join(cgGenEventsPath, exeName)); err == nil {
-		return exeName, nil
-	}
-
-	filename := fmt.Sprintf("cg-gen-events-%s-%s.tar.gz", runtime.GOOS, runtime.GOARCH)
-	if runtime.GOOS == "windows" {
-		filename = fmt.Sprintf("cg-gen-events-%s-%s.zip", runtime.GOOS, runtime.GOARCH)
-	}
-
-	res, err := http.Get(fmt.Sprintf("https://github.com/code-game-project/cg-gen-events/releases/download/v%s/%s", version, filename))
-	if err != nil {
-		return "", err
-	}
-	defer res.Body.Close()
-
-	err = os.MkdirAll(cgGenEventsPath, 0755)
-	if err != nil {
-		return "", err
-	}
-
-	if runtime.GOOS == "windows" {
-		return exeName, UnzipFile(res.Body, "cg-gen-events.exe", filepath.Join(cgGenEventsPath, exeName))
-	}
-	return exeName, UntargzFile(res.Body, "cg-gen-events", filepath.Join(cgGenEventsPath, exeName))
-}
-
+// CGGenEvents downloads the correct cg-gen-events version for the specified CGE version and executes it.
 func CGGenEvents(outputDir, url, cgeVersion, language string) error {
 	version, err := GithubTagFromVersion("code-game-project", "cg-gen-events", cgeVersion)
 	if err != nil {
@@ -82,7 +34,7 @@ func CGGenEvents(outputDir, url, cgeVersion, language string) error {
 	}
 	version = strings.TrimPrefix(version, "v")
 
-	exeName, err := InstallCGGenEvents(version)
+	exeName, err := installCGGenEvents(version)
 	if err != nil {
 		return err
 	}
@@ -98,14 +50,12 @@ func CGGenEvents(outputDir, url, cgeVersion, language string) error {
 		}
 	}
 
-	out, err := ExecuteHidden(filepath.Join(cgGenEventsPath, exeName), url, "--languages", language, "--output", outputDir)
-	if err != nil {
-		cli.Error(out)
-	}
+	_, err = Execute(true, filepath.Join(cgGenEventsPath, exeName), url, "--languages", language, "--output", outputDir)
 	return err
 }
 
-// requires cgeVersion >= 0.3
+// GetEventNames uses CGGenEvents() to get a list of all the available events of the game server at url.
+// It only works for CGE versions >= 0.3
 func GetEventNames(url, cgeVersion string) ([]string, error) {
 	output := os.TempDir()
 	err := CGGenEvents(output, url, cgeVersion, "json")
@@ -142,9 +92,10 @@ func GetEventNames(url, cgeVersion string) ([]string, error) {
 	return names, nil
 }
 
+// GetCGEVersion returns the CGE version of the game server in the format 'x.y'.
 func GetCGEVersion(baseURL string) (string, error) {
 	res, err := http.Get(baseURL + "/events")
-	if err != nil || res.StatusCode != http.StatusOK || !HasContentType(res.Header, "text/plain") {
+	if err != nil || res.StatusCode != http.StatusOK || (!HasContentType(res.Header, "text/plain") && !HasContentType(res.Header, "application/octet-stream")) {
 		return "", cli.Error("Couldn't access /events endpoint.")
 	}
 	defer res.Body.Close()
@@ -153,10 +104,10 @@ func GetCGEVersion(baseURL string) (string, error) {
 	if err != nil {
 		return "", cli.Error("Couldn't read /events file.")
 	}
-	return ParseCGEVersion([]rune(string(data))), nil
+	return parseCGEVersion([]rune(string(data))), nil
 }
 
-func ParseCGEVersion(runes []rune) string {
+func parseCGEVersion(runes []rune) string {
 	index := 0
 	commentNestingLevel := 0
 	for index < len(runes) && (runes[index] == ' ' || runes[index] == '\r' || runes[index] == '\n' || runes[index] == '\t' || (index < len(runes)-1 && runes[index] == '/' && runes[index+1] == '*') || (index < len(runes)-1 && runes[index] == '*' && runes[index+1] == '/') || (index < len(runes)-1 && runes[index] == '/' && runes[index+1] == '/') || commentNestingLevel > 0) {
@@ -183,4 +134,36 @@ func ParseCGEVersion(runes []rune) string {
 	}
 
 	return ""
+}
+
+func installCGGenEvents(version string) (string, error) {
+	exeName := fmt.Sprintf("cg-gen-events_%s", strings.ReplaceAll(version, ".", "-"))
+	if runtime.GOOS == "windows" {
+		exeName = exeName + ".exe"
+	}
+
+	if _, err := os.Stat(filepath.Join(cgGenEventsPath, exeName)); err == nil {
+		return exeName, nil
+	}
+
+	filename := fmt.Sprintf("cg-gen-events-%s-%s.tar.gz", runtime.GOOS, runtime.GOARCH)
+	if runtime.GOOS == "windows" {
+		filename = fmt.Sprintf("cg-gen-events-%s-%s.zip", runtime.GOOS, runtime.GOARCH)
+	}
+
+	res, err := http.Get(fmt.Sprintf("https://github.com/code-game-project/cg-gen-events/releases/download/v%s/%s", version, filename))
+	if err != nil {
+		return "", err
+	}
+	defer res.Body.Close()
+
+	err = os.MkdirAll(cgGenEventsPath, 0755)
+	if err != nil {
+		return "", err
+	}
+
+	if runtime.GOOS == "windows" {
+		return exeName, UnzipFile(res.Body, "cg-gen-events.exe", filepath.Join(cgGenEventsPath, exeName))
+	}
+	return exeName, UntargzFile(res.Body, "cg-gen-events", filepath.Join(cgGenEventsPath, exeName))
 }

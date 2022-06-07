@@ -7,7 +7,7 @@ import (
 
 	"github.com/code-game-project/codegame-cli/cli"
 	"github.com/code-game-project/codegame-cli/commands"
-	"github.com/code-game-project/codegame-cli/external"
+	"github.com/code-game-project/codegame-cli/util"
 	"github.com/ogier/pflag"
 )
 
@@ -30,7 +30,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	external.CheckVersion()
+	util.CheckVersion()
 
 	command := strings.ToLower(pflag.Arg(0))
 

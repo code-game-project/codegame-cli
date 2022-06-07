@@ -13,7 +13,7 @@ import (
 	"time"
 
 	"github.com/code-game-project/codegame-cli/cli"
-	"github.com/code-game-project/codegame-cli/external"
+	"github.com/code-game-project/codegame-cli/util"
 	"github.com/ogier/pflag"
 )
 
@@ -42,22 +42,26 @@ func New() error {
 	if err != nil {
 		return err
 	}
+	err = os.Chdir(projectName)
+	if err != nil {
+		return err
+	}
 
 	switch project {
 	case "server":
-		err = newServer(projectName)
+		err = newServer()
 	case "client":
-		err = newClient(projectName)
+		err = newClient()
 	default:
 		err = cli.Error("Unknown project type: %s", project)
 	}
 
 	if err != nil {
-		os.RemoveAll(projectName)
+		deleteCurrentDir()
 		return err
 	}
 
-	err = git(projectName)
+	err = git()
 	if err != nil {
 		return err
 	}
@@ -65,7 +69,7 @@ func New() error {
 	if err != nil {
 		return err
 	}
-	err = license(projectName)
+	err = license()
 	if err != nil {
 		return err
 	}
@@ -74,7 +78,7 @@ func New() error {
 	return nil
 }
 
-func newServer(projectName string) error {
+func newServer() error {
 	var language string
 	if pflag.NArg() >= 3 {
 		language = strings.ToLower(pflag.Arg(2))
@@ -89,25 +93,24 @@ func newServer(projectName string) error {
 	var err error
 	switch language {
 	case "go":
-		err = external.ExecuteModule(projectName, "go", "latest", "server", "new", "server")
+		err = util.ExecuteModule("go", "latest", "server", "new", "server")
 	default:
 		return cli.Error("Unsupported language: %s", language)
 	}
 	return err
 }
 
-func newClient(projectName string) error {
+func newClient() error {
 	url, err := cli.Input("Game server URL:")
 	if err != nil {
 		return err
 	}
-	url = trimURL(url)
-	ssl := isSSL(url)
-	name, cgVersion, err := getCodeGameInfo(baseURL(url, ssl))
+	url = baseURL(url)
+	name, cgVersion, err := getCodeGameInfo(url)
 	if err != nil {
 		return err
 	}
-	cgeVersion, err := external.GetCGEVersion(baseURL(url, ssl))
+	cgeVersion, err := util.GetCGEVersion(url)
 	if err != nil {
 		return err
 	}
@@ -123,15 +126,15 @@ func newClient(projectName string) error {
 		}
 	}
 
-	cgeMajor, cgeMinor, _, err := external.ParseVersion(cgeVersion)
+	cgeMajor, cgeMinor, _, err := util.ParseVersion(cgeVersion)
 	if err != nil {
 		return cli.Error(err.Error())
 	}
 
 	switch language {
 	case "go":
-		goLibraryVersion := external.ClientVersionFromCGVersion("code-game-project", "go-client", cgVersion)
-		err = external.ExecuteModule(projectName, "go", goLibraryVersion, "client", "new", "client", "--library-version="+goLibraryVersion, "--game-name="+name, "--url="+url, fmt.Sprintf("--supports-wrappers=%t", cgeMajor > 0 || cgeMinor >= 3))
+		goLibraryVersion := util.LibraryVersionFromCGVersion("code-game-project", "go-client", cgVersion)
+		err = util.ExecuteModule("go", goLibraryVersion, "client", "new", "client", "--library-version="+goLibraryVersion, "--game-name="+name, "--url="+url, fmt.Sprintf("--supports-wrappers=%t", cgeMajor > 0 || cgeMinor >= 3))
 	default:
 		return cli.Error("Unsupported language: %s", language)
 	}
@@ -139,13 +142,13 @@ func newClient(projectName string) error {
 		return err
 	}
 
-	eventsOutput := projectName
+	eventsOutput := "."
 	if language == "go" {
-		eventsOutput = filepath.Join(projectName, strings.ReplaceAll(strings.ReplaceAll(name, "-", ""), "_", ""))
+		eventsOutput = strings.ReplaceAll(strings.ReplaceAll(name, "-", ""), "_", "")
 	}
 
 	cli.Begin("Generating event definitions...")
-	err = external.CGGenEvents(eventsOutput, baseURL(url, ssl), cgeVersion, language)
+	err = util.CGGenEvents(eventsOutput, url, cgeVersion, language)
 	if err != nil {
 		cli.Error("Failed to generate event definitions: %s", err)
 		return err
@@ -155,20 +158,20 @@ func newClient(projectName string) error {
 	return nil
 }
 
-func git(projectName string) error {
-	if !external.IsInstalled("git") {
+func git() error {
+	if !util.IsInstalled("git") {
 		return nil
 	}
 
 	yes, err := cli.YesNo("Initialize git?", true)
 	if err != nil {
-		os.RemoveAll(projectName)
+		deleteCurrentDir()
 		return err
 	}
 	if !yes {
 		return nil
 	}
-	out, err := external.ExecuteInDirHidden(projectName, "git", "init")
+	out, err := util.Execute(true, "git", "init")
 	if err != nil {
 		if out != "" {
 			cli.Error(out)
@@ -182,7 +185,7 @@ func git(projectName string) error {
 func readme(projectName string) error {
 	yes, err := cli.YesNo("Create README?", true)
 	if err != nil {
-		os.RemoveAll(projectName)
+		deleteCurrentDir()
 		return err
 	}
 	if !yes {
@@ -191,7 +194,7 @@ func readme(projectName string) error {
 
 	fileContent := fmt.Sprintf("# %s", projectName)
 
-	err = os.WriteFile(filepath.Join(projectName, "README.md"), []byte(fileContent), 0644)
+	err = os.WriteFile("README.md", []byte(fileContent), 0644)
 	if err != nil {
 		cli.Error(err.Error())
 	}
@@ -222,10 +225,10 @@ var licenseApache string
 //go:embed templates/licenses/Apache_README.tmpl
 var licenseReadmeApache string
 
-func license(projectName string) error {
+func license() error {
 	license, err := cli.Select("License", []string{"None", "MIT", "GPLv3", "AGPL", "Apache 2.0"}, []string{"none", "MIT", "GPL", "AGPL", "Apache"})
 	if err != nil {
-		os.RemoveAll(projectName)
+		deleteCurrentDir()
 		return err
 	}
 
@@ -250,20 +253,20 @@ func license(projectName string) error {
 		return errors.New("Unknown license.")
 	}
 
-	err = writeLicense(licenseTemplate, projectName, external.GetUsername(), time.Now().Year())
+	err = writeLicense(licenseTemplate, util.GetUsername(), time.Now().Year())
 	if err != nil {
-		os.Remove(filepath.Join(projectName, "LICENSE"))
+		os.Remove("LICENSE")
 		return err
 	}
 
-	if _, err := os.Stat(filepath.Join(projectName, "README.md")); err == nil {
-		err = writeReadmeLicense(licenseReadmeTemplate, projectName, external.GetUsername(), time.Now().Year())
+	if _, err := os.Stat("README.md"); err == nil {
+		err = writeReadmeLicense(licenseReadmeTemplate, util.GetUsername(), time.Now().Year())
 	}
 
 	return nil
 }
 
-func writeLicense(templateText, projectName, username string, year int) error {
+func writeLicense(templateText, username string, year int) error {
 	type data struct {
 		Year     int
 		Username string
@@ -273,7 +276,7 @@ func writeLicense(templateText, projectName, username string, year int) error {
 		return err
 	}
 
-	file, err := os.Create(filepath.Join(projectName, "LICENSE"))
+	file, err := os.Create("LICENSE")
 	if err != nil {
 		return cli.Error("Failed to create LICENSE file!")
 	}
@@ -285,8 +288,8 @@ func writeLicense(templateText, projectName, username string, year int) error {
 	})
 }
 
-func writeReadmeLicense(templateText, projectName, username string, year int) error {
-	readme, err := os.OpenFile(filepath.Join(projectName, "README.md"), os.O_APPEND|os.O_WRONLY, 0755)
+func writeReadmeLicense(templateText, username string, year int) error {
+	readme, err := os.OpenFile("README.md", os.O_APPEND|os.O_WRONLY, 0755)
 	if err != nil {
 		return cli.Error("Failed to append license text to README.")
 	}
@@ -320,7 +323,7 @@ func getCodeGameInfo(baseURL string) (string, string, error) {
 	if err != nil || res.StatusCode != http.StatusOK {
 		return "", "", cli.Error("Couldn't access %s.", url)
 	}
-	if !external.HasContentType(res.Header, "application/json") {
+	if !util.HasContentType(res.Header, "application/json") {
 		return "", "", cli.Error("%s doesn't return JSON.", url)
 	}
 	defer res.Body.Close()
@@ -354,6 +357,20 @@ func execTemplate(templateText, path string, data any) error {
 	return tmpl.Execute(file, data)
 }
 
+func deleteCurrentDir() {
+	workingDir, err := os.Getwd()
+	if err != nil {
+		cli.Error("Failed to delete created directory: %s", err)
+		return
+	}
+
+	name := filepath.Base(workingDir)
+
+	os.Chdir("..")
+
+	os.RemoveAll(name)
+}
+
 func trimURL(url string) string {
 	if strings.HasPrefix(url, "http://") {
 		url = strings.TrimPrefix(url, "http://")
@@ -367,11 +384,13 @@ func trimURL(url string) string {
 	return strings.TrimSuffix(url, "/")
 }
 
-func baseURL(domain string, ssl bool) string {
-	if ssl {
-		return "https://" + domain
+// baseURL returns the URL with the correct protocol ('http://' or 'https://')
+func baseURL(url string) string {
+	url = trimURL(url)
+	if isSSL(url) {
+		return "https://" + url
 	} else {
-		return "http://" + domain
+		return "http://" + url
 	}
 }
 

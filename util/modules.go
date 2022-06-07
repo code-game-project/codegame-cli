@@ -1,4 +1,4 @@
-package external
+package util
 
 import (
 	"encoding/json"
@@ -16,7 +16,7 @@ import (
 
 var modulesPath = filepath.Join(xdg.DataHome, "codegame", "bin", "codegame-cli", "modules")
 
-func ExecuteModule(dir, name, libraryVersion, projectType string, args ...string) error {
+func ExecuteModule(name, libraryVersion, projectType string, args ...string) error {
 	version, err := findModuleVersion(name, libraryVersion, projectType)
 	if err != nil {
 		return cli.Error(err.Error())
@@ -38,7 +38,8 @@ func ExecuteModule(dir, name, libraryVersion, projectType string, args ...string
 		}
 	}
 
-	return ExecuteInDir(dir, filepath.Join(modulesPath, name, exeName), args...)
+	_, err = Execute(false, filepath.Join(modulesPath, name, exeName), args...)
+	return err
 }
 
 func findModuleVersion(name, libraryVersion, projectType string) (string, error) {

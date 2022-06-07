@@ -10,7 +10,7 @@ import (
 	"unicode/utf8"
 
 	"github.com/code-game-project/codegame-cli/cli"
-	"github.com/code-game-project/codegame-cli/external"
+	"github.com/code-game-project/codegame-cli/util"
 	"github.com/mattn/go-colorable"
 	"github.com/ogier/pflag"
 )
@@ -73,12 +73,12 @@ func printInfoProperty(out io.Writer, name, value string, labelWidth int) {
 }
 
 func fetchInfo(url string) (gameInfo, error) {
-	url = baseURL(url, isSSL(url)) + "/info"
+	url = baseURL(url) + "/info"
 	res, err := http.Get(url)
 	if err != nil || res.StatusCode != http.StatusOK {
 		return gameInfo{}, cli.Error("Couldn't access %s.", url)
 	}
-	if !external.HasContentType(res.Header, "application/json") {
+	if !util.HasContentType(res.Header, "application/json") {
 		return gameInfo{}, cli.Error("%s doesn't return JSON.", url)
 	}
 	defer res.Body.Close()

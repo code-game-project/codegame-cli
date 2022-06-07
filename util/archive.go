@@ -1,4 +1,4 @@
-package external
+package util
 
 import (
 	"archive/tar"
@@ -11,6 +11,7 @@ import (
 	"os"
 )
 
+// UntargzFile first decompresses source with gzip, then extracts the file with fileName into outputFileName.
 func UntargzFile(source io.Reader, fileName, outputFileName string) error {
 	archive, err := gzip.NewReader(source)
 	if err != nil {
@@ -43,6 +44,7 @@ func UntargzFile(source io.Reader, fileName, outputFileName string) error {
 	return errors.New("file not found")
 }
 
+// UnzipFile first decompresses source with gzip, then extracts the file with fileName into outputFileName.
 func UnzipFile(source io.Reader, fileName, outputFileName string) error {
 	data, err := ioutil.ReadAll(source)
 	if err != nil {
