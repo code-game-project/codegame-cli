@@ -87,7 +87,7 @@ func newServer(projectName string) error {
 		language = strings.ToLower(pflag.Arg(2))
 	} else {
 		var err error
-		language, err = cli.Select("Language:", []string{"Go"}, []string{"go"})
+		language, err = cli.Select("Language:", []string{"Go", "JavaScript", "TypeScript"}, []string{"go", "js", "ts"})
 		if err != nil {
 			return err
 		}
@@ -97,6 +97,10 @@ func newServer(projectName string) error {
 	switch language {
 	case "go":
 		err = util.ExecuteModule("go", "latest", "server", "new", "server")
+	case "js":
+		err = util.ExecuteModule("js", "latest", "server", "new", "server")
+	case "ts":
+		err = util.ExecuteModule("js", "latest", "server", "new", "server", "--typescript")
 	default:
 		return cli.Error("Unsupported language: %s", language)
 	}
@@ -151,7 +155,7 @@ func newClient() error {
 		language = strings.ToLower(pflag.Arg(2))
 	} else {
 		var err error
-		language, err = cli.Select("Language", []string{"Go"}, []string{"go"})
+		language, err = cli.Select("Language", []string{"Go", "JavaScript", "TypeScript"}, []string{"go", "js", "ts"})
 		if err != nil {
 			return err
 		}
@@ -164,8 +168,14 @@ func newClient() error {
 
 	switch language {
 	case "go":
-		goLibraryVersion := util.LibraryVersionFromCGVersion("code-game-project", "go-client", cgVersion)
-		err = util.ExecuteModule("go", goLibraryVersion, "client", "new", "client", "--library-version="+goLibraryVersion, "--game-name="+name, "--url="+trimURL(url), fmt.Sprintf("--supports-wrappers=%t", cgeMajor > 0 || cgeMinor >= 3))
+		libraryVersion := util.LibraryVersionFromCGVersion("code-game-project", "go-client", cgVersion)
+		err = util.ExecuteModule("go", libraryVersion, "client", "new", "client", "--library-version="+libraryVersion, "--game-name="+name, "--url="+trimURL(url), fmt.Sprintf("--supports-wrappers=%t", cgeMajor > 0 || cgeMinor >= 3))
+	case "js":
+		libraryVersion := util.LibraryVersionFromCGVersion("code-game-project", "javascript-client", cgVersion)
+		err = util.ExecuteModule("js", libraryVersion, "client", "new", "client", "--library-version="+libraryVersion, "--game-name="+name, "--url="+trimURL(url))
+	case "ts":
+		libraryVersion := util.LibraryVersionFromCGVersion("code-game-project", "javascript-client", cgVersion)
+		err = util.ExecuteModule("js", libraryVersion, "client", "new", "client", "--typescript", "--library-version="+libraryVersion, "--game-name="+name, "--url="+trimURL(url))
 	default:
 		return cli.Error("Unsupported language: %s", language)
 	}
