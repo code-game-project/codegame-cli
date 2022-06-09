@@ -17,6 +17,9 @@ import (
 	"github.com/ogier/pflag"
 )
 
+//go:embed templates/events.cge.tmpl
+var eventsCGETemplate string
+
 func New() error {
 	var project string
 	if pflag.NArg() >= 2 {
@@ -49,7 +52,7 @@ func New() error {
 
 	switch project {
 	case "server":
-		err = newServer()
+		err = newServer(projectName)
 	case "client":
 		err = newClient()
 	default:
@@ -78,7 +81,7 @@ func New() error {
 	return nil
 }
 
-func newServer() error {
+func newServer(projectName string) error {
 	var language string
 	if pflag.NArg() >= 3 {
 		language = strings.ToLower(pflag.Arg(2))
@@ -97,7 +100,35 @@ func newServer() error {
 	default:
 		return cli.Error("Unsupported language: %s", language)
 	}
-	return err
+	if err != nil {
+		return err
+	}
+
+	cgeVersion, err := util.LatestCGEVersion()
+	if err != nil {
+		return err
+	}
+
+	type data struct {
+		SnakeCaseName string
+		CGEVersion    string
+	}
+
+	tmpl, err := template.New("events.cge").Parse(eventsCGETemplate)
+	if err != nil {
+		return err
+	}
+
+	file, err := os.Create("events.cge")
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+
+	return tmpl.Execute(file, data{
+		SnakeCaseName: strings.ReplaceAll(projectName, "-", "_"),
+		CGEVersion:    cgeVersion,
+	})
 }
 
 func newClient() error {
@@ -134,7 +165,7 @@ func newClient() error {
 	switch language {
 	case "go":
 		goLibraryVersion := util.LibraryVersionFromCGVersion("code-game-project", "go-client", cgVersion)
-		err = util.ExecuteModule("go", goLibraryVersion, "client", "new", "client", "--library-version="+goLibraryVersion, "--game-name="+name, "--url="+url, fmt.Sprintf("--supports-wrappers=%t", cgeMajor > 0 || cgeMinor >= 3))
+		err = util.ExecuteModule("go", goLibraryVersion, "client", "new", "client", "--library-version="+goLibraryVersion, "--game-name="+name, "--url="+trimURL(url), fmt.Sprintf("--supports-wrappers=%t", cgeMajor > 0 || cgeMinor >= 3))
 	default:
 		return cli.Error("Unsupported language: %s", language)
 	}
