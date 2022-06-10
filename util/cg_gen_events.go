@@ -50,7 +50,11 @@ func CGGenEvents(outputDir, url, cgeVersion, language string) error {
 		}
 	}
 
+	cli.Begin("Generating event definitions...")
 	_, err = Execute(true, filepath.Join(cgGenEventsPath, exeName), url, "--languages", language, "--output", outputDir)
+	if err == nil {
+		cli.Finish()
+	}
 	return err
 }
 
@@ -150,6 +154,9 @@ func installCGGenEvents(version string) (string, error) {
 	if runtime.GOOS == "windows" {
 		filename = fmt.Sprintf("cg-gen-events-%s-%s.zip", runtime.GOOS, runtime.GOARCH)
 	}
+
+	cli.Begin("Downloading cg-gen-events v%s...", version)
+	defer cli.Finish()
 
 	res, err := http.Get(fmt.Sprintf("https://github.com/code-game-project/cg-gen-events/releases/download/v%s/%s", version, filename))
 	if err != nil {

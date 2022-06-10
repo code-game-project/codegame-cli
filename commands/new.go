@@ -189,12 +189,10 @@ func newClient() error {
 	}
 
 	if language == "go" || language == "ts" {
-		cli.Begin("Generating event definitions...")
 		err = util.CGGenEvents(eventsOutput, url, cgeVersion, language)
 		if err != nil {
 			return err
 		}
-		cli.Finish()
 	}
 
 	return nil

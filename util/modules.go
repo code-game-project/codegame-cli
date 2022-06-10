@@ -104,6 +104,9 @@ func installModule(name, version string) (string, error) {
 		filename = fmt.Sprintf("codegame-cli-%s-%s-%s.zip", name, runtime.GOOS, runtime.GOARCH)
 	}
 
+	cli.Begin("Downloading codegame-cli-%s v%s...", name, version)
+	defer cli.Finish()
+
 	res, err := http.Get(fmt.Sprintf("https://github.com/code-game-project/codegame-cli-%s/releases/download/v%s/%s", name, version, filename))
 	if err != nil {
 		return "", err
