@@ -1,11 +1,35 @@
 name: Build Release
 
-on:
-  release:
-    types: [created]
+on:  
+  push:
+    tags:
+      - 'v*'
 
 jobs:
-  releases-matrix:
+  create_release:
+      name:  Create release
+      runs-on: ubuntu-latest
+      steps:
+        - name: Checkout
+          uses: actions/checkout@v2
+          with:
+            fetch-depth: 0
+        - name: Read info
+          id: tags
+          shell: bash
+          run: |
+            echo ::set-output name=TAG::${GITHUB_REF/refs\/tags\//}
+        - name: Create Release
+          id: create_release
+          uses: actions/create-release@master
+          env:
+            GITHUB_TOKEN: ${{ github.token }}
+          with:
+            tag_name: ${{ steps.tags.outputs.tag }}
+            release_name: ${{ steps.tags.outputs.tag }}
+            draft: false
+            prerelease: false
+  publish_binaries:
     name: Release Go Binary
     runs-on: ubuntu-latest
     strategy:
@@ -16,8 +40,15 @@ jobs:
           - goarch: arm64
             goos: windows
     steps:
-    - uses: actions/checkout@v3
-    - uses: wangyoucao577/go-release-action@v1.28
+    - name: Checkout
+      uses: actions/checkout@v3
+    - name: Read info
+      id: tags
+      shell: bash
+      run: |
+        echo ::set-output name=TAG::${GITHUB_REF/refs\/tags\//}
+    - name: Build and Publish
+      uses: wangyoucao577/go-release-action@v1.28
       with:
         github_token: ${{ secrets.GITHUB_TOKEN }}
         goos: ${{ matrix.goos }}
@@ -25,3 +56,4 @@ jobs:
         binary_name: codegame
         asset_name: codegame-cli-${{matrix.goos}}-${{matrix.goarch}}
         extra_files: LICENSE README.md
+        release_tag: ${{ steps.tags.outputs.tag }}
