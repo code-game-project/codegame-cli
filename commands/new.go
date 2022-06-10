@@ -188,13 +188,14 @@ func newClient() error {
 		eventsOutput = strings.ReplaceAll(strings.ReplaceAll(name, "-", ""), "_", "")
 	}
 
-	cli.Begin("Generating event definitions...")
-	err = util.CGGenEvents(eventsOutput, url, cgeVersion, language)
-	if err != nil {
-		cli.Error("Failed to generate event definitions: %s", err)
-		return err
+	if language == "go" || language == "ts" {
+		cli.Begin("Generating event definitions...")
+		err = util.CGGenEvents(eventsOutput, url, cgeVersion, language)
+		if err != nil {
+			return err
+		}
+		cli.Finish()
 	}
-	cli.Finish()
 
 	return nil
 }
