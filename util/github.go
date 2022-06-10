@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"net/http"
 	"strings"
 
@@ -51,19 +52,35 @@ func GithubTagFromVersion(owner, repo, version string) (string, error) {
 }
 
 func LibraryVersionFromCGVersion(owner, repo, cgVersion string) string {
-	res, err := http.Get(fmt.Sprintf("https://raw.githubusercontent.com/%s/%s/main/versions.json", owner, repo))
-	if err != nil || res.StatusCode != http.StatusOK {
+	body, err := LoadVersionsJSON(owner, repo)
+	if err != nil {
 		cli.Warn("Couldn't fetch versions.json. Using latest client library version.")
 		return "latest"
 	}
-	defer res.Body.Close()
+	defer body.Close()
 
 	var versions map[string]string
-	err = json.NewDecoder(res.Body).Decode(&versions)
+	err = json.NewDecoder(body).Decode(&versions)
 	if err != nil {
 		cli.Warn("Invalid versions.json. Using latest client library version.")
 		return "latest"
 	}
 
 	return CompatibleVersion(versions, cgVersion)
+}
+
+func LoadVersionsJSON(owner, repo string) (io.ReadCloser, error) {
+	res, err := http.Get(fmt.Sprintf("https://raw.githubusercontent.com/%s/%s/main/versions.json", owner, repo))
+	if res.StatusCode != http.StatusOK {
+		err = errors.New("invalid http status")
+	}
+
+	if err != nil {
+		res, err = http.Get(fmt.Sprintf("https://raw.githubusercontent.com/%s/%s/master/versions.json", owner, repo))
+		if res.StatusCode != http.StatusOK {
+			err = errors.New("invalid http status")
+		}
+	}
+
+	return res.Body, err
 }

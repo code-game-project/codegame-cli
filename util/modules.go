@@ -48,13 +48,13 @@ func findModuleVersion(name, libraryVersion, projectType string) (string, error)
 		return strings.TrimPrefix(version, "v"), err
 	}
 
-	res, err := http.Get(fmt.Sprintf("https://raw.githubusercontent.com/code-game-project/codegame-cli-%s/main/versions.json", name))
-	if err != nil || res.StatusCode != http.StatusOK {
-		cli.Warn("Couldn't fetch versions.json. Using latest go module version.")
+	body, err := LoadVersionsJSON("code-game-project", "codegame-cli-"+name)
+	if err != nil {
+		cli.Warn("Couldn't fetch versions.json. Using latest %s module version.", name)
 		version, err := LatestGithubTag("code-game-project", "codegame-cli-"+name)
 		return strings.TrimPrefix(version, "v"), err
 	}
-	defer res.Body.Close()
+	defer body.Close()
 
 	type jsonObj struct {
 		Server map[string]string
@@ -62,9 +62,9 @@ func findModuleVersion(name, libraryVersion, projectType string) (string, error)
 	}
 
 	var versions jsonObj
-	err = json.NewDecoder(res.Body).Decode(&versions)
+	err = json.NewDecoder(body).Decode(&versions)
 	if err != nil {
-		cli.Warn("Invalid versions.json. Using latest go module version.")
+		cli.Warn("Invalid versions.json. Using latest %s module version.", name)
 		version, err := LatestGithubTag("code-game-project", "codegame-cli-"+name)
 		return strings.TrimPrefix(version, "v"), err
 	}
