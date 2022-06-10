@@ -12,7 +12,7 @@ import (
 	"github.com/code-game-project/codegame-cli/cli"
 )
 
-const currentVersion = "0.5.0"
+const currentVersion = "0.5.2"
 
 // CheckVersion prints a warning, if there is a newer version of codegame-cli available.
 func CheckVersion() {
