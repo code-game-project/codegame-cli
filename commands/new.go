@@ -169,7 +169,7 @@ func newClient() error {
 	switch language {
 	case "go":
 		libraryVersion := util.LibraryVersionFromCGVersion("code-game-project", "go-client", cgVersion)
-		err = util.ExecuteModule("go", libraryVersion, "client", "new", "client", "--library-version="+libraryVersion, "--game-name="+name, "--url="+trimURL(url), fmt.Sprintf("--supports-wrappers=%t", cgeMajor > 0 || cgeMinor >= 3))
+		err = util.ExecuteModule("go", libraryVersion, "client", "new", "client", "--library-version="+libraryVersion, "--game-name="+name, "--url="+trimURL(url), fmt.Sprintf("--generate-wrappers=%t", cgeMajor > 0 || cgeMinor >= 3))
 	case "js":
 		libraryVersion := util.LibraryVersionFromCGVersion("code-game-project", "javascript-client", cgVersion)
 		err = util.ExecuteModule("js", libraryVersion, "client", "new", "client", "--library-version="+libraryVersion, "--game-name="+name, "--url="+trimURL(url))
