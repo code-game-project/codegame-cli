@@ -50,11 +50,16 @@ func CGGenEvents(outputDir, url, cgeVersion, language string) error {
 		}
 	}
 
-	cli.Begin("Generating event definitions...")
+	if language != "json" && language != "markdown" && language != "html" {
+		cli.Begin("Generating event definitions...")
+
+	}
 	_, err = Execute(true, filepath.Join(cgGenEventsPath, exeName), url, "--languages", language, "--output", outputDir)
+
 	if err == nil {
 		cli.Finish()
 	}
+
 	return err
 }
 
