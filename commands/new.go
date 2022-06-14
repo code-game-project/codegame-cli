@@ -26,7 +26,7 @@ func New() error {
 		project = strings.ToLower(pflag.Arg(1))
 	} else {
 		var err error
-		project, err = cli.Select("Which type of project would you like to create?", []string{"Game Client", "Game Server"}, []string{"client", "server"})
+		project, err = cli.Select("Project type:", []string{"Game Client", "Game Server"}, []string{"client", "server"})
 		if err != nil {
 			return err
 		}
@@ -155,7 +155,7 @@ func newClient() error {
 		language = strings.ToLower(pflag.Arg(2))
 	} else {
 		var err error
-		language, err = cli.Select("Language", []string{"Go", "JavaScript", "TypeScript"}, []string{"go", "js", "ts"})
+		language, err = cli.Select("Language:", []string{"Go", "JavaScript", "TypeScript"}, []string{"go", "js", "ts"})
 		if err != nil {
 			return err
 		}
@@ -266,7 +266,7 @@ var licenseApache string
 var licenseReadmeApache string
 
 func license() error {
-	license, err := cli.Select("License", []string{"None", "MIT", "GPLv3", "AGPL", "Apache 2.0"}, []string{"none", "MIT", "GPL", "AGPL", "Apache"})
+	license, err := cli.Select("License:", []string{"None", "MIT", "GPLv3", "AGPL", "Apache 2.0"}, []string{"none", "MIT", "GPL", "AGPL", "Apache"})
 	if err != nil {
 		deleteCurrentDir()
 		return err
