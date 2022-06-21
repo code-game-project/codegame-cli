@@ -1,4 +1,4 @@
-package util
+package external
 
 import (
 	"encoding/json"
@@ -8,8 +8,11 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/code-game-project/codegame-cli/cli"
+	"github.com/Bananenpro/cli"
+	"github.com/code-game-project/codegame-cli/util/semver"
 )
+
+var ErrTagNotFound = errors.New("tag not found")
 
 func LatestGithubTag(owner, repo string) (string, error) {
 	res, err := http.Get(fmt.Sprintf("https://api.github.com/repos/%s/%s/tags", owner, repo))
@@ -66,7 +69,7 @@ func LibraryVersionFromCGVersion(owner, repo, cgVersion string) string {
 		return "latest"
 	}
 
-	return CompatibleVersion(versions, cgVersion)
+	return semver.CompatibleVersion(versions, cgVersion)
 }
 
 func LoadVersionsJSON(owner, repo string) (io.ReadCloser, error) {

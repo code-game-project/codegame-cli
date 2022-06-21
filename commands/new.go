@@ -8,17 +8,24 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"regexp"
 	"strings"
 	"text/template"
 	"time"
 
-	"github.com/code-game-project/codegame-cli/cli"
-	"github.com/code-game-project/codegame-cli/util"
+	"github.com/Bananenpro/cli"
+	"github.com/code-game-project/codegame-cli/util/cggenevents"
+	"github.com/code-game-project/codegame-cli/util/exec"
+	"github.com/code-game-project/codegame-cli/util/external"
+	"github.com/code-game-project/codegame-cli/util/modules"
+	"github.com/code-game-project/codegame-cli/util/semver"
 	"github.com/ogier/pflag"
 )
 
 //go:embed templates/events.cge.tmpl
 var eventsCGETemplate string
+
+var projectNameRegexp = regexp.MustCompile(`^[a-zA-Z0-9_\-]*$`)
 
 func New() error {
 	var project string
@@ -26,13 +33,13 @@ func New() error {
 		project = strings.ToLower(pflag.Arg(1))
 	} else {
 		var err error
-		project, err = cli.Select("Project type:", []string{"Game Client", "Game Server"}, []string{"client", "server"})
+		project, err = cli.SelectString("Project type:", []string{"Game Client", "Game Server"}, []string{"client", "server"})
 		if err != nil {
 			return err
 		}
 	}
 
-	projectName, err := cli.InputAlphanum("Project name:")
+	projectName, err := cli.Input("Project name:", cli.Regexp(projectNameRegexp, "Project name must only contain 'a'-'z','A'-'Z','0'-'9','-','_'."))
 	if err != nil {
 		return err
 	}
@@ -77,7 +84,7 @@ func New() error {
 		return err
 	}
 
-	cli.Success("Successfully created project in '%s/'.", projectName)
+	cli.PrintColor(cli.GreenBold, "Successfully created project in '%s/'.", projectName)
 	return nil
 }
 
@@ -87,7 +94,7 @@ func newServer(projectName string) error {
 		language = strings.ToLower(pflag.Arg(2))
 	} else {
 		var err error
-		language, err = cli.Select("Language:", []string{"Go", "JavaScript", "TypeScript"}, []string{"go", "js", "ts"})
+		language, err = cli.SelectString("Language:", []string{"Go", "JavaScript", "TypeScript"}, []string{"go", "js", "ts"})
 		if err != nil {
 			return err
 		}
@@ -96,11 +103,11 @@ func newServer(projectName string) error {
 	var err error
 	switch language {
 	case "go":
-		err = util.ExecuteModule("go", "latest", "server", "new", "server")
+		err = modules.Execute("go", "latest", "server", "new", "server")
 	case "js":
-		err = util.ExecuteModule("js", "latest", "server", "new", "server")
+		err = modules.Execute("js", "latest", "server", "new", "server")
 	case "ts":
-		err = util.ExecuteModule("js", "latest", "server", "new", "server", "--typescript")
+		err = modules.Execute("js", "latest", "server", "new", "server", "--typescript")
 	default:
 		return cli.Error("Unsupported language: %s", language)
 	}
@@ -108,7 +115,7 @@ func newServer(projectName string) error {
 		return err
 	}
 
-	cgeVersion, err := util.LatestCGEVersion()
+	cgeVersion, err := cggenevents.LatestCGEVersion()
 	if err != nil {
 		return err
 	}
@@ -145,7 +152,7 @@ func newClient() error {
 	if err != nil {
 		return err
 	}
-	cgeVersion, err := util.GetCGEVersion(url)
+	cgeVersion, err := cggenevents.GetCGEVersion(url)
 	if err != nil {
 		return err
 	}
@@ -155,27 +162,27 @@ func newClient() error {
 		language = strings.ToLower(pflag.Arg(2))
 	} else {
 		var err error
-		language, err = cli.Select("Language:", []string{"Go", "JavaScript", "TypeScript"}, []string{"go", "js", "ts"})
+		language, err = cli.SelectString("Language:", []string{"Go", "JavaScript", "TypeScript"}, []string{"go", "js", "ts"})
 		if err != nil {
 			return err
 		}
 	}
 
-	cgeMajor, cgeMinor, _, err := util.ParseVersion(cgeVersion)
+	cgeMajor, cgeMinor, _, err := semver.ParseVersion(cgeVersion)
 	if err != nil {
 		return cli.Error(err.Error())
 	}
 
 	switch language {
 	case "go":
-		libraryVersion := util.LibraryVersionFromCGVersion("code-game-project", "go-client", cgVersion)
-		err = util.ExecuteModule("go", libraryVersion, "client", "new", "client", "--library-version="+libraryVersion, "--game-name="+name, "--url="+trimURL(url), fmt.Sprintf("--generate-wrappers=%t", cgeMajor > 0 || cgeMinor >= 3))
+		libraryVersion := external.LibraryVersionFromCGVersion("code-game-project", "go-client", cgVersion)
+		err = modules.Execute("go", libraryVersion, "client", "new", "client", "--library-version="+libraryVersion, "--game-name="+name, "--url="+trimURL(url), fmt.Sprintf("--generate-wrappers=%t", cgeMajor > 0 || cgeMinor >= 3))
 	case "js":
-		libraryVersion := util.LibraryVersionFromCGVersion("code-game-project", "javascript-client", cgVersion)
-		err = util.ExecuteModule("js", libraryVersion, "client", "new", "client", "--library-version="+libraryVersion, "--game-name="+name, "--url="+trimURL(url))
+		libraryVersion := external.LibraryVersionFromCGVersion("code-game-project", "javascript-client", cgVersion)
+		err = modules.Execute("js", libraryVersion, "client", "new", "client", "--library-version="+libraryVersion, "--game-name="+name, "--url="+trimURL(url))
 	case "ts":
-		libraryVersion := util.LibraryVersionFromCGVersion("code-game-project", "javascript-client", cgVersion)
-		err = util.ExecuteModule("js", libraryVersion, "client", "new", "client", "--typescript", "--library-version="+libraryVersion, "--game-name="+name, "--url="+trimURL(url))
+		libraryVersion := external.LibraryVersionFromCGVersion("code-game-project", "javascript-client", cgVersion)
+		err = modules.Execute("js", libraryVersion, "client", "new", "client", "--typescript", "--library-version="+libraryVersion, "--game-name="+name, "--url="+trimURL(url))
 	default:
 		return cli.Error("Unsupported language: %s", language)
 	}
@@ -189,7 +196,7 @@ func newClient() error {
 	}
 
 	if language == "go" || language == "ts" {
-		err = util.CGGenEvents(eventsOutput, url, cgeVersion, language)
+		err = cggenevents.CGGenEvents(eventsOutput, url, cgeVersion, language)
 		if err != nil {
 			return err
 		}
@@ -199,7 +206,7 @@ func newClient() error {
 }
 
 func git() error {
-	if !util.IsInstalled("git") {
+	if !exec.IsInstalled("git") {
 		return nil
 	}
 
@@ -211,7 +218,7 @@ func git() error {
 	if !yes {
 		return nil
 	}
-	out, err := util.Execute(true, "git", "init")
+	out, err := exec.Execute(true, "git", "init")
 	if err != nil {
 		if out != "" {
 			cli.Error(out)
@@ -266,7 +273,7 @@ var licenseApache string
 var licenseReadmeApache string
 
 func license() error {
-	license, err := cli.Select("License:", []string{"None", "MIT", "GPLv3", "AGPL", "Apache 2.0"}, []string{"none", "MIT", "GPL", "AGPL", "Apache"})
+	index, err := cli.Select("License:", []string{"None", "MIT", "GPLv3", "AGPL", "Apache 2.0"})
 	if err != nil {
 		deleteCurrentDir()
 		return err
@@ -274,33 +281,33 @@ func license() error {
 
 	var licenseTemplate string
 	var licenseReadmeTemplate string
-	switch license {
-	case "MIT":
+	switch index {
+	case 0:
+		return nil
+	case 1:
 		licenseTemplate = licenseMIT
 		licenseReadmeTemplate = licenseReadmeMIT
-	case "GPL":
+	case 2:
 		licenseTemplate = licenseGPL
 		licenseReadmeTemplate = licenseReadmeGPL
-	case "AGPL":
+	case 3:
 		licenseTemplate = licenseAGPL
 		licenseReadmeTemplate = licenseReadmeAGPL
-	case "Apache":
+	case 4:
 		licenseTemplate = licenseApache
 		licenseReadmeTemplate = licenseReadmeApache
-	case "none":
-		return nil
 	default:
 		return errors.New("Unknown license.")
 	}
 
-	err = writeLicense(licenseTemplate, util.GetUsername(), time.Now().Year())
+	err = writeLicense(licenseTemplate, external.GetUsername(), time.Now().Year())
 	if err != nil {
 		os.Remove("LICENSE")
 		return err
 	}
 
 	if _, err := os.Stat("README.md"); err == nil {
-		err = writeReadmeLicense(licenseReadmeTemplate, util.GetUsername(), time.Now().Year())
+		err = writeReadmeLicense(licenseReadmeTemplate, external.GetUsername(), time.Now().Year())
 	}
 
 	return nil
@@ -363,7 +370,7 @@ func getCodeGameInfo(baseURL string) (string, string, error) {
 	if err != nil || res.StatusCode != http.StatusOK {
 		return "", "", cli.Error("Couldn't access %s.", url)
 	}
-	if !util.HasContentType(res.Header, "application/json") {
+	if !external.HasContentType(res.Header, "application/json") {
 		return "", "", cli.Error("%s doesn't return JSON.", url)
 	}
 	defer res.Body.Close()

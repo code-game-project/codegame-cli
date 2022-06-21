@@ -9,8 +9,8 @@ import (
 	"strings"
 	"unicode/utf8"
 
-	"github.com/code-game-project/codegame-cli/cli"
-	"github.com/code-game-project/codegame-cli/util"
+	"github.com/Bananenpro/cli"
+	"github.com/code-game-project/codegame-cli/util/external"
 	"github.com/mattn/go-colorable"
 	"github.com/ogier/pflag"
 )
@@ -45,7 +45,7 @@ func Info() error {
 
 	printInfo(info)
 
-	cli.Info("\nTo view the documentation of this game run:\n%s docs %s", os.Args[0], url)
+	cli.PrintColor(cli.Yellow, "\nTo view the documentation of this game run:\n%s docs %s", os.Args[0], url)
 	return nil
 }
 
@@ -78,7 +78,7 @@ func fetchInfo(url string) (gameInfo, error) {
 	if err != nil || res.StatusCode != http.StatusOK {
 		return gameInfo{}, cli.Error("Couldn't access %s.", url)
 	}
-	if !util.HasContentType(res.Header, "application/json") {
+	if !external.HasContentType(res.Header, "application/json") {
 		return gameInfo{}, cli.Error("%s doesn't return JSON.", url)
 	}
 	defer res.Body.Close()

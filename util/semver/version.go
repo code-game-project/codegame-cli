@@ -1,40 +1,12 @@
-package util
+package semver
 
 import (
 	"fmt"
-	"os"
-	"path/filepath"
 	"strconv"
 	"strings"
-	"time"
 
-	"github.com/adrg/xdg"
-	"github.com/code-game-project/codegame-cli/cli"
+	"github.com/Bananenpro/cli"
 )
-
-const currentVersion = "0.5.2"
-
-// CheckVersion prints a warning, if there is a newer version of codegame-cli available.
-func CheckVersion() {
-	latest, err := getLatestVersion()
-	if err != nil {
-		return
-	}
-
-	currentMajor, currentMinor, currentPatch, err := ParseVersion(currentVersion)
-	if err != nil {
-		return
-	}
-
-	latestMajor, latestMinor, latestPatch, err := ParseVersion(latest)
-	if err != nil {
-		return
-	}
-
-	if latestMajor > currentMajor || (latestMajor == currentMajor && latestMinor > currentMinor) || (latestMajor == currentMajor && latestMinor == currentMinor && latestPatch > currentPatch) {
-		cli.Warn("You are using an old version of codegame-cli (v%s).\nUpdate to the latest version (v%s): https://github.com/code-game-project/codegame-cli#installation", currentVersion, latest)
-	}
-}
 
 // CompatibleVersion returns the next best compatible version in the versions map.
 func CompatibleVersion(versions map[string]string, version string) string {
@@ -108,30 +80,6 @@ func CompatibleVersion(versions map[string]string, version string) string {
 
 	cli.Warn("No compatible version found. Using latest version.")
 	return "latest"
-}
-
-func getLatestVersion() (string, error) {
-	cacheDir := filepath.Join(xdg.CacheHome, "codegame", "cli")
-	os.MkdirAll(cacheDir, 0755)
-
-	content, err := os.ReadFile(filepath.Join(cacheDir, "latest_version"))
-	if err == nil {
-		parts := strings.Split(string(content), "\n")
-		if len(parts) >= 2 {
-			cacheTime, err := strconv.Atoi(parts[0])
-			if err == nil && time.Now().Unix()-int64(cacheTime) <= 3*24*60*60 {
-				return parts[1], nil
-			}
-		}
-	}
-
-	tag, err := LatestGithubTag("code-game-project", "codegame-cli")
-	if err != nil {
-		return "", err
-	}
-	version := strings.TrimPrefix(tag, "v")
-	os.WriteFile(filepath.Join(cacheDir, "latest_version"), []byte(fmt.Sprintf("%d\n%s", time.Now().Unix(), version)), 0644)
-	return version, nil
 }
 
 func ParseVersion(version string) (int, int, int, error) {

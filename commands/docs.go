@@ -4,8 +4,9 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/code-game-project/codegame-cli/cli"
-	"github.com/code-game-project/codegame-cli/util"
+	"github.com/Bananenpro/cli"
+	"github.com/code-game-project/codegame-cli/util/cggenevents"
+	"github.com/code-game-project/codegame-cli/util/exec"
 	"github.com/gomarkdown/markdown"
 	"github.com/gomarkdown/markdown/html"
 	"github.com/gomarkdown/markdown/parser"
@@ -19,32 +20,25 @@ var docsStyle string
 
 func Docs() error {
 	if pflag.NArg() == 1 {
-		cli.Begin("Opening documentation...")
-		err := util.OpenBrowser("https://docs.code-game.org")
+		cli.Print("Opening documentation...")
+		err := exec.OpenBrowser("https://docs.code-game.org")
 		if err != nil {
 			cli.Error(err.Error())
 		}
-		cli.Finish()
 		return err
 	}
-
-	cli.Begin("Generating markdown documentation...")
 
 	url := baseURL(pflag.Arg(1))
 
-	cgeVersion, err := util.GetCGEVersion(url)
+	cgeVersion, err := cggenevents.GetCGEVersion(url)
 	if err != nil {
 		return err
 	}
 
-	err = util.CGGenEvents(os.TempDir(), url, cgeVersion, "markdown")
+	err = cggenevents.CGGenEvents(os.TempDir(), url, cgeVersion, "markdown")
 	if err != nil {
 		return err
 	}
-
-	cli.Finish()
-
-	cli.Begin("Converting documentation to HTML...")
 
 	md, err := os.ReadFile(filepath.Join(os.TempDir(), "event_docs.md"))
 	if err != nil {
@@ -69,16 +63,12 @@ func Docs() error {
 		return cli.Error(err.Error())
 	}
 
-	cli.Finish()
+	cli.Print("Opening documentation...")
 
-	cli.Begin("Opening documentation...")
-
-	err = util.OpenBrowser(filepath.Join(os.TempDir(), "event_docs.html"))
+	err = exec.OpenBrowser(filepath.Join(os.TempDir(), "event_docs.html"))
 	if err != nil {
 		cli.Error(err.Error())
 	}
-
-	cli.Finish()
 
 	return nil
 }
