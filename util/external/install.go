@@ -19,8 +19,6 @@ import (
 )
 
 func InstallProgram(name, filename, url, version, path string) (string, error) {
-	cli.BeginLoading("Installing %s v%s...", name, version)
-
 	exeName := fmt.Sprintf("%s_%s", name, strings.ReplaceAll(version, ".", "-"))
 	if runtime.GOOS == "windows" {
 		exeName = exeName + ".exe"
@@ -29,6 +27,9 @@ func InstallProgram(name, filename, url, version, path string) (string, error) {
 	if _, err := os.Stat(filepath.Join(path, exeName)); err == nil {
 		return exeName, nil
 	}
+
+	cli.BeginLoading("Installing %s v%s...", name, version)
+	defer cli.CancelLoading()
 
 	downloadFile := fmt.Sprintf("%s-%s-%s.tar.gz", name, runtime.GOOS, runtime.GOARCH)
 	if runtime.GOOS == "windows" {
@@ -41,10 +42,7 @@ func InstallProgram(name, filename, url, version, path string) (string, error) {
 	}
 	defer res.Body.Close()
 
-	err = os.MkdirAll(path, 0755)
-	if err != nil {
-		return "", err
-	}
+	os.MkdirAll(path, 0755)
 
 	binaries, err := os.ReadDir(path)
 	if err == nil {

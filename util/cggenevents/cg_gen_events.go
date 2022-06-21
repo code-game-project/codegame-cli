@@ -49,10 +49,9 @@ func installCGGenEvents(cgeVersion string) (string, error) {
 
 // GetEventNames uses CGGenEvents() to get a list of all the available events of the game server at url.
 // It only works for CGE versions >= 0.3.
-// CGGenEvents must be installed first!
-func GetEventNames(exeName, url string) ([]string, error) {
+func GetEventNames(url, cgeVersion string) ([]string, error) {
 	output := os.TempDir()
-	err := CGGenEvents(exeName, output, url, "json")
+	err := CGGenEvents(cgeVersion, output, url, "json")
 	if err != nil {
 		return nil, err
 	}

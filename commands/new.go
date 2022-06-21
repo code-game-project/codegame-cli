@@ -14,6 +14,7 @@ import (
 	"time"
 
 	"github.com/Bananenpro/cli"
+	"github.com/code-game-project/codegame-cli/util/cgfile"
 	"github.com/code-game-project/codegame-cli/util/cggenevents"
 	"github.com/code-game-project/codegame-cli/util/exec"
 	"github.com/code-game-project/codegame-cli/util/external"
@@ -100,7 +101,16 @@ func newServer(projectName string) error {
 		}
 	}
 
-	var err error
+	file := cgfile.CodeGameFileData{
+		Game: projectName,
+		Type: "server",
+		Lang: language,
+	}
+	err := file.Write("")
+	if err != nil {
+		return cli.Error("Failed to create .codegame.json: %s", err)
+	}
+
 	switch language {
 	case "go":
 		err = modules.Execute("go", "latest", "server", "new", "server")
@@ -130,13 +140,13 @@ func newServer(projectName string) error {
 		return err
 	}
 
-	file, err := os.Create("events.cge")
+	eventsFile, err := os.Create("events.cge")
 	if err != nil {
 		return err
 	}
-	defer file.Close()
+	defer eventsFile.Close()
 
-	return tmpl.Execute(file, data{
+	return tmpl.Execute(eventsFile, data{
 		SnakeCaseName: strings.ReplaceAll(projectName, "-", "_"),
 		CGEVersion:    cgeVersion,
 	})
@@ -173,6 +183,17 @@ func newClient() error {
 		return cli.Error(err.Error())
 	}
 
+	file := cgfile.CodeGameFileData{
+		Game: name,
+		Type: "client",
+		Lang: language,
+		URL:  trimURL(url),
+	}
+	err = file.Write("")
+	if err != nil {
+		return cli.Error("Failed to create .codegame.json: %s", err)
+	}
+
 	switch language {
 	case "go":
 		libraryVersion := external.LibraryVersionFromCGVersion("code-game-project", "go-client", cgVersion)
@@ -196,7 +217,7 @@ func newClient() error {
 	}
 
 	if language == "go" || language == "ts" {
-		err = cggenevents.CGGenEvents(eventsOutput, url, cgeVersion, language)
+		err = cggenevents.CGGenEvents(cgeVersion, eventsOutput, url, language)
 		if err != nil {
 			return err
 		}
@@ -360,10 +381,11 @@ func writeReadmeLicense(templateText, username string, year int) error {
 	})
 }
 
-func getCodeGameInfo(baseURL string) (string, string, error) {
+func getCodeGameInfo(baseURL string) (name string, cgVersion string, err error) {
 	type response struct {
 		Name      string `json:"name"`
 		CGVersion string `json:"cg_version"`
+		Version   string `json:"version"`
 	}
 	url := baseURL + "/info"
 	res, err := http.Get(url)

@@ -35,7 +35,7 @@ func Docs() error {
 		return err
 	}
 
-	err = cggenevents.CGGenEvents(os.TempDir(), url, cgeVersion, "markdown")
+	err = cggenevents.CGGenEvents(cgeVersion, os.TempDir(), url, "markdown")
 	if err != nil {
 		return err
 	}
