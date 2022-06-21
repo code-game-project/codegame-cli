@@ -9,11 +9,11 @@ import (
 	"time"
 
 	"github.com/Bananenpro/cli"
+	"github.com/Bananenpro/pflag"
 	"github.com/adrg/xdg"
 	"github.com/code-game-project/codegame-cli/commands"
 	"github.com/code-game-project/codegame-cli/util/external"
 	"github.com/code-game-project/codegame-cli/util/semver"
-	"github.com/ogier/pflag"
 )
 
 const Version = "0.6.0"
@@ -25,22 +25,22 @@ func main() {
 		fmt.Fprintln(os.Stderr, "The official CodeGame CLI.")
 		fmt.Fprintln(os.Stderr, "\nCommands:")
 		fmt.Fprintln(os.Stderr, "\tnew \tCreate a new project.")
+		fmt.Fprintln(os.Stderr, "\trun \tRun a project.")
 		fmt.Fprintln(os.Stderr, "\tinfo \tDisplay some info about a game server.")
 		fmt.Fprintln(os.Stderr, "\tdocs \tOpen the CodeGame documentation in a web browser.")
 		fmt.Fprintln(os.Stderr, "\nAbout: https://code-game.org")
 		fmt.Fprintln(os.Stderr, "Copyright (c) 2022 CodeGame Contributors (https://code-game.org/contributors)")
 		pflag.PrintDefaults()
 	}
-	pflag.Parse()
 
-	if pflag.NArg() == 0 {
+	if len(os.Args) == 1 {
 		pflag.Usage()
 		os.Exit(1)
 	}
 
 	checkVersion()
 
-	command := strings.ToLower(pflag.Arg(0))
+	command := strings.ToLower(os.Args[1])
 
 	var err error
 	switch command {
@@ -50,14 +50,16 @@ func main() {
 		err = commands.Info()
 	case "docs":
 		err = commands.Docs()
+	case "run":
+		err = commands.Run()
 	default:
 		cli.Error("Unknown command: %s", strings.ToLower(pflag.Arg(0)))
 		pflag.Usage()
 		os.Exit(1)
 	}
 	if err != nil {
-		cli.FinishLoading()
-		cli.FinishProgressBar()
+		cli.CancelLoading()
+		cli.CancelProgressBar()
 		os.Exit(1)
 	}
 }

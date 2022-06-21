@@ -16,6 +16,11 @@ Create a new project:
 codegame new
 ```
 
+Run a project:
+```sh
+codegame run
+```
+
 Get information about a game server:
 ```sh
 codegame info <url>

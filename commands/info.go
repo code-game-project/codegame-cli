@@ -12,7 +12,6 @@ import (
 	"github.com/Bananenpro/cli"
 	"github.com/code-game-project/codegame-cli/util/external"
 	"github.com/mattn/go-colorable"
-	"github.com/ogier/pflag"
 )
 
 type gameInfo struct {
@@ -26,8 +25,8 @@ type gameInfo struct {
 
 func Info() error {
 	var url string
-	if pflag.NArg() >= 2 {
-		url = strings.ToLower(pflag.Arg(1))
+	if len(os.Args) >= 3 {
+		url = strings.ToLower(os.Args[2])
 	} else {
 		var err error
 		url, err = cli.Input("Game server URL:")

@@ -20,7 +20,6 @@ import (
 	"github.com/code-game-project/codegame-cli/util/external"
 	"github.com/code-game-project/codegame-cli/util/modules"
 	"github.com/code-game-project/codegame-cli/util/semver"
-	"github.com/ogier/pflag"
 )
 
 //go:embed templates/events.cge.tmpl
@@ -30,8 +29,8 @@ var projectNameRegexp = regexp.MustCompile(`^[a-zA-Z0-9_\-]*$`)
 
 func New() error {
 	var project string
-	if pflag.NArg() >= 2 {
-		project = strings.ToLower(pflag.Arg(1))
+	if len(os.Args) >= 3 {
+		project = strings.ToLower(os.Args[2])
 	} else {
 		var err error
 		project, err = cli.SelectString("Project type:", []string{"Game Client", "Game Server"}, []string{"client", "server"})
@@ -91,8 +90,8 @@ func New() error {
 
 func newServer(projectName string) error {
 	var language string
-	if pflag.NArg() >= 3 {
-		language = strings.ToLower(pflag.Arg(2))
+	if len(os.Args) >= 4 {
+		language = strings.ToLower(os.Args[3])
 	} else {
 		var err error
 		language, err = cli.SelectString("Language:", []string{"Go", "JavaScript", "TypeScript"}, []string{"go", "js", "ts"})
@@ -168,8 +167,8 @@ func newClient() error {
 	}
 
 	var language string
-	if pflag.NArg() >= 3 {
-		language = strings.ToLower(pflag.Arg(2))
+	if len(os.Args) >= 4 {
+		language = strings.ToLower(os.Args[3])
 	} else {
 		var err error
 		language, err = cli.SelectString("Language:", []string{"Go", "JavaScript", "TypeScript"}, []string{"go", "js", "ts"})

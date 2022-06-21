@@ -10,7 +10,6 @@ import (
 	"github.com/gomarkdown/markdown"
 	"github.com/gomarkdown/markdown/html"
 	"github.com/gomarkdown/markdown/parser"
-	"github.com/ogier/pflag"
 
 	_ "embed"
 )
@@ -19,7 +18,7 @@ import (
 var docsStyle string
 
 func Docs() error {
-	if pflag.NArg() == 1 {
+	if len(os.Args) <= 2 {
 		cli.Print("Opening documentation...")
 		err := exec.OpenBrowser("https://docs.code-game.org")
 		if err != nil {
@@ -28,7 +27,7 @@ func Docs() error {
 		return err
 	}
 
-	url := baseURL(pflag.Arg(1))
+	url := baseURL(os.Args[2])
 
 	cgeVersion, err := cggenevents.GetCGEVersion(url)
 	if err != nil {
