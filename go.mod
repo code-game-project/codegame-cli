@@ -3,7 +3,7 @@ module github.com/code-game-project/codegame-cli
 go 1.18
 
 require (
-	github.com/Bananenpro/cli v0.1.2
+	github.com/Bananenpro/cli v0.1.3
 	github.com/Bananenpro/pflag v1.0.7
 	github.com/adrg/xdg v0.4.0
 	github.com/gomarkdown/markdown v0.0.0-20220607163217-45f7c050e2d1
