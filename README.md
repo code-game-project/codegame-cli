@@ -21,6 +21,11 @@ Update event definitions, wrappers and libraries to match the latest game versio
 codegame update
 ```
 
+Permanently switch to a different game URL:
+```sh
+codegame change-url <new_url>
+```
+
 Run a project:
 ```sh
 codegame run

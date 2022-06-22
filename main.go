@@ -24,12 +24,13 @@ func main() {
 		fmt.Fprintln(os.Stderr, "\nDescription:")
 		fmt.Fprintln(os.Stderr, "The official CodeGame CLI.")
 		fmt.Fprintln(os.Stderr, "\nCommands:")
-		fmt.Fprintln(os.Stderr, "\tnew \tCreate a new project.")
-		fmt.Fprintln(os.Stderr, "\tupdate \tUpdate the current project.")
-		fmt.Fprintln(os.Stderr, "\trun \tRun the current project.")
-		fmt.Fprintln(os.Stderr, "\tbuild \tBuild the current project.")
-		fmt.Fprintln(os.Stderr, "\tinfo \tDisplay some info about a game server.")
-		fmt.Fprintln(os.Stderr, "\tdocs \tOpen the CodeGame documentation in a web browser.")
+		fmt.Fprintln(os.Stderr, "  new         Create a new project.")
+		fmt.Fprintln(os.Stderr, "  update      Update the current project.")
+		fmt.Fprintln(os.Stderr, "  change-url  Permanently switch to a different game URL.")
+		fmt.Fprintln(os.Stderr, "  run         Run the current project.")
+		fmt.Fprintln(os.Stderr, "  build       Build the current project.")
+		fmt.Fprintln(os.Stderr, "  info        Display some info about a game server.")
+		fmt.Fprintln(os.Stderr, "  docs        Open the CodeGame documentation in a web browser.")
 		fmt.Fprintln(os.Stderr, "\nAbout: https://code-game.org")
 		fmt.Fprintln(os.Stderr, "Copyright (c) 2022 CodeGame Contributors (https://code-game.org/contributors)")
 		pflag.PrintDefaults()
@@ -50,6 +51,8 @@ func main() {
 		err = commands.New()
 	case "update":
 		err = commands.Update()
+	case "change-url":
+		err = commands.ChangeURL()
 	case "info":
 		err = commands.Info()
 	case "docs":
