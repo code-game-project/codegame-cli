@@ -118,7 +118,7 @@ func newServer(projectName string) error {
 	case "ts":
 		err = modules.Execute("js", "latest", "server", "new", "server", "--typescript")
 	default:
-		return cli.Error("Unsupported language: %s", language)
+		return cli.Error("'new server' is not supported for '%s'", language)
 	}
 	if err != nil {
 		return err
@@ -204,7 +204,7 @@ func newClient() error {
 		libraryVersion := external.LibraryVersionFromCGVersion("code-game-project", "javascript-client", cgVersion)
 		err = modules.Execute("js", libraryVersion, "client", "new", "client", "--typescript", "--library-version="+libraryVersion, "--game-name="+name, "--url="+trimURL(url))
 	default:
-		return cli.Error("Unsupported language: %s", language)
+		return cli.Error("'new client' is not supported for '%s'", language)
 	}
 	if err != nil {
 		return err

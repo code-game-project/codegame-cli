@@ -5,6 +5,7 @@ import (
 	"os"
 	"os/exec"
 	"runtime"
+	"strings"
 
 	"github.com/Bananenpro/cli"
 )
@@ -41,7 +42,7 @@ func Execute(hidden bool, programName string, args ...string) (string, error) {
 		if outStr != "" {
 			err = cli.Error("'%s' returned with an error:\n%s", programName, outStr)
 		} else {
-			err = cli.Error("Failed to execute '%s'.", programName)
+			err = cli.Error("Failed to execute '%s %s'.", programName, strings.Join(args, " "))
 		}
 	}
 
