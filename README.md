@@ -4,12 +4,26 @@
 
 The official [CodeGame](https://code-game.org) CLI.
 
-## Usage
+## Commands
+
+### Docs and info
 
 View the CodeGame documentation:
 ```sh
 codegame docs
 ```
+
+View the documentation of a game:
+```sh
+codegame docs <url>
+```
+
+Get information about a game server:
+```sh
+codegame info <url>
+```
+
+### Project templates
 
 Create a new project:
 ```sh
@@ -26,6 +40,8 @@ Permanently switch to a different game URL:
 codegame change-url <new_url>
 ```
 
+### Running and building
+
 Run a project:
 ```sh
 codegame run
@@ -36,33 +52,12 @@ Build a project:
 codegame build
 ```
 
-Get information about a game server:
-```sh
-codegame info <url>
-```
+### Help
 
-View the documentation of a game:
-```sh
-codegame docs <url>
-```
-
-Help:
+Display help:
 ```sh
 codegame --help
 ```
-
-## Features
-
-- View the CodeGame documentation
-- View information about a game server
-- Automatic project setup
-  - CodeGame version detection and management
-  - Create a new client
-    - Go
-  - Create a new game server
-    - Go
-  - Initialize Git
-  - Create README and LICENSE files
 
 ## Installation
 
