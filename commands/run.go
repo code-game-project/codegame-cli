@@ -26,7 +26,7 @@ func Run() error {
 
 	switch data.Lang {
 	case "go":
-		err = modules.Execute("go", "latest", "client", args...)
+		err = modules.Execute("go", "latest", data.Type, args...)
 	default:
 		return cli.Error("'run' is not supported for '%s'", data.Lang)
 	}

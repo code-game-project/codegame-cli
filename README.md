@@ -16,9 +16,19 @@ Create a new project:
 codegame new
 ```
 
+Update event definitions, wrappers and libraries to match the latest game version:
+```sh
+codegame update
+```
+
 Run a project:
 ```sh
 codegame run
+```
+
+Build a project:
+```sh
+codegame build
 ```
 
 Get information about a game server:

@@ -25,6 +25,7 @@ func main() {
 		fmt.Fprintln(os.Stderr, "The official CodeGame CLI.")
 		fmt.Fprintln(os.Stderr, "\nCommands:")
 		fmt.Fprintln(os.Stderr, "\tnew \tCreate a new project.")
+		fmt.Fprintln(os.Stderr, "\tupdate \tUpdate the current project.")
 		fmt.Fprintln(os.Stderr, "\trun \tRun the current project.")
 		fmt.Fprintln(os.Stderr, "\tbuild \tBuild the current project.")
 		fmt.Fprintln(os.Stderr, "\tinfo \tDisplay some info about a game server.")
@@ -47,6 +48,8 @@ func main() {
 	switch command {
 	case "new":
 		err = commands.New()
+	case "update":
+		err = commands.Update()
 	case "info":
 		err = commands.Info()
 	case "docs":
