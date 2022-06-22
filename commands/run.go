@@ -37,6 +37,11 @@ func Run() error {
 	if err != nil {
 		return cli.Error("Not in a CodeGame project directory")
 	}
+	wd, _ := os.Getwd()
+	rootRelative, err := filepath.Rel(wd, root)
+	if err != nil {
+		return err
+	}
 
 	data, err := cgfile.LoadCodeGameFile(root)
 	if err != nil {
@@ -53,7 +58,7 @@ func Run() error {
 	switch data.Lang {
 	case "go":
 		cmdName = "go"
-		args = append(args, "run")
+		args = append(args, []string{"run", filepath.Join(rootRelative, "main.go")}...)
 	default:
 		return cli.Error("'run' is not supported for '%s'", data.Lang)
 	}
