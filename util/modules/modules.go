@@ -4,12 +4,13 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"os"
+	"os/exec"
 	"path/filepath"
 	"strings"
 
 	"github.com/Bananenpro/cli"
 	"github.com/adrg/xdg"
-	"github.com/code-game-project/codegame-cli/util/exec"
 	"github.com/code-game-project/codegame-cli/util/external"
 	"github.com/code-game-project/codegame-cli/util/semver"
 )
@@ -27,8 +28,16 @@ func Execute(name, libraryVersion, projectType string, args ...string) error {
 		return cli.Error(err.Error())
 	}
 
-	_, err = exec.Execute(false, filepath.Join(modulesPath, name, exeName), args...)
-	return err
+	programName := filepath.Join(modulesPath, name, exeName)
+	if _, err := exec.LookPath(programName); err != nil {
+		cli.Error("'%s' ist not installed!", programName)
+		return err
+	}
+	cmd := exec.Command(programName, args...)
+	cmd.Stdin = os.Stdin
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+	return cmd.Run()
 }
 
 func findModuleVersion(name, libraryVersion, projectType string) (string, error) {

@@ -25,7 +25,8 @@ func main() {
 		fmt.Fprintln(os.Stderr, "The official CodeGame CLI.")
 		fmt.Fprintln(os.Stderr, "\nCommands:")
 		fmt.Fprintln(os.Stderr, "\tnew \tCreate a new project.")
-		fmt.Fprintln(os.Stderr, "\trun \tRun a project.")
+		fmt.Fprintln(os.Stderr, "\trun \tRun the current project.")
+		fmt.Fprintln(os.Stderr, "\tbuild \tBuild the current project.")
 		fmt.Fprintln(os.Stderr, "\tinfo \tDisplay some info about a game server.")
 		fmt.Fprintln(os.Stderr, "\tdocs \tOpen the CodeGame documentation in a web browser.")
 		fmt.Fprintln(os.Stderr, "\nAbout: https://code-game.org")
@@ -52,6 +53,8 @@ func main() {
 		err = commands.Docs()
 	case "run":
 		err = commands.Run()
+	case "build":
+		err = commands.Build()
 	default:
 		cli.Error("Unknown command: %s", strings.ToLower(pflag.Arg(0)))
 		pflag.Usage()
