@@ -3,16 +3,13 @@ package cggenevents
 import (
 	"encoding/json"
 	"fmt"
-	"io"
-	"net/http"
 	"os"
 	"path/filepath"
 	"strings"
 
-	"github.com/Bananenpro/cli"
 	"github.com/adrg/xdg"
-	"github.com/code-game-project/codegame-cli/util/exec"
-	"github.com/code-game-project/codegame-cli/util/external"
+	"github.com/code-game-project/codegame-cli/pkg/exec"
+	"github.com/code-game-project/codegame-cli/pkg/external"
 )
 
 var cgGenEventsPath = filepath.Join(xdg.DataHome, "codegame", "bin", "cg-gen-events")
@@ -21,7 +18,7 @@ var cgGenEventsPath = filepath.Join(xdg.DataHome, "codegame", "bin", "cg-gen-eve
 func LatestCGEVersion() (string, error) {
 	tag, err := external.LatestGithubTag("code-game-project", "cg-gen-events")
 	if err != nil {
-		return "", cli.Error("Couldn't determine the latest CGE version: %s", err)
+		return "", fmt.Errorf("Couldn't determine the latest CGE version: %s", err)
 	}
 
 	return strings.TrimPrefix(strings.Join(strings.Split(tag, ".")[:2], "."), "v"), nil
@@ -47,27 +44,28 @@ func installCGGenEvents(cgeVersion string) (string, error) {
 	return external.InstallProgram("cg-gen-events", "cg-gen-events", fmt.Sprintf("https://github.com/code-game-project/cg-gen-events"), version, cgGenEventsPath)
 }
 
-// GetEventNames uses CGGenEvents() to get a list of all the available events of the game server at url.
+// GetEventNames uses CGGenEvents() to get a list of all the available event and command names of the game server at url.
 // It only works for CGE versions >= 0.3.
-func GetEventNames(url, cgeVersion string) ([]string, error) {
+func GetEventNames(url, cgeVersion string) (eventNames []string, commandNames []string, err error) {
 	output := os.TempDir()
-	err := CGGenEvents(cgeVersion, output, url, "json")
+	err = CGGenEvents(cgeVersion, output, url, "json")
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
-	type event struct {
+	type obj struct {
 		Name string `json:"name"`
 	}
 	type data struct {
-		Events []event `json:"events"`
+		Events   []obj `json:"events"`
+		Commands []obj `json:"commands"`
 	}
 
 	path := filepath.Join(output, "events.json")
 
 	file, err := os.Open(path)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 	defer os.Remove(path)
 	defer file.Close()
@@ -75,32 +73,24 @@ func GetEventNames(url, cgeVersion string) ([]string, error) {
 	var object data
 	err = json.NewDecoder(file).Decode(&object)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
-	names := make([]string, len(object.Events))
+	eNames := make([]string, len(object.Events))
 	for i, event := range object.Events {
-		names[i] = event.Name
+		eNames[i] = event.Name
 	}
-	return names, nil
+
+	cNames := make([]string, len(object.Commands))
+	for i, cmd := range object.Commands {
+		cNames[i] = cmd.Name
+	}
+	return eNames, cNames, nil
 }
 
-// GetCGEVersion returns the CGE version of the game server in the format 'x.y'.
-func GetCGEVersion(baseURL string) (string, error) {
-	res, err := http.Get(baseURL + "/events")
-	if err != nil || res.StatusCode != http.StatusOK || (!external.HasContentType(res.Header, "text/plain") && !external.HasContentType(res.Header, "application/octet-stream")) {
-		return "", cli.Error("Couldn't access /events endpoint.")
-	}
-	defer res.Body.Close()
-
-	data, err := io.ReadAll(res.Body)
-	if err != nil {
-		return "", cli.Error("Couldn't read /events file.")
-	}
-	return parseCGEVersion([]rune(string(data))), nil
-}
-
-func parseCGEVersion(runes []rune) string {
+// CGEVersion parses the version field in the provided CGE file and returns the CGE version in the format 'x.y'.
+func ParseCGEVersion(cge string) (string, error) {
+	runes := []rune(cge)
 	index := 0
 	commentNestingLevel := 0
 	for index < len(runes) && (runes[index] == ' ' || runes[index] == '\r' || runes[index] == '\n' || runes[index] == '\t' || (index < len(runes)-1 && runes[index] == '/' && runes[index+1] == '*') || (index < len(runes)-1 && runes[index] == '*' && runes[index+1] == '/') || (index < len(runes)-1 && runes[index] == '/' && runes[index+1] == '/') || commentNestingLevel > 0) {
@@ -122,9 +112,9 @@ func parseCGEVersion(runes []rune) string {
 	words := strings.Fields(string(runes[index:]))
 	for i, w := range words {
 		if w == "version" && i < len(words)-1 {
-			return words[i+1]
+			return words[i+1], nil
 		}
 	}
 
-	return ""
+	return "", fmt.Errorf("invalid CGE file: no version field")
 }

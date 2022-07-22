@@ -9,7 +9,7 @@ import (
 	"strings"
 
 	"github.com/Bananenpro/cli"
-	"github.com/code-game-project/codegame-cli/util/semver"
+	"github.com/code-game-project/codegame-cli/pkg/semver"
 )
 
 var ErrTagNotFound = errors.New("tag not found")
@@ -34,7 +34,7 @@ func LatestGithubTag(owner, repo string) (string, error) {
 func GithubTagFromVersion(owner, repo, version string) (string, error) {
 	res, err := http.Get(fmt.Sprintf("https://api.github.com/repos/%s/%s/tags", owner, repo))
 	if err != nil || res.StatusCode != http.StatusOK || !HasContentType(res.Header, "application/json") {
-		return "", cli.Error("Couldn't access git tags from 'github.com/%s/%s'.", owner, repo)
+		return "", fmt.Errorf("Couldn't access git tags from 'github.com/%s/%s'.", owner, repo)
 	}
 	defer res.Body.Close()
 	type response []struct {
@@ -43,7 +43,7 @@ func GithubTagFromVersion(owner, repo, version string) (string, error) {
 	var data response
 	err = json.NewDecoder(res.Body).Decode(&data)
 	if err != nil {
-		return "", cli.Error("Couldn't decode git tag data.")
+		return "", fmt.Errorf("Couldn't decode git tag data.")
 	}
 
 	for _, tag := range data {

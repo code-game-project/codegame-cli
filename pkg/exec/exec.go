@@ -6,8 +6,6 @@ import (
 	"os/exec"
 	"runtime"
 	"strings"
-
-	"github.com/Bananenpro/cli"
 )
 
 func IsInstalled(programName string) bool {
@@ -20,8 +18,7 @@ func IsInstalled(programName string) bool {
 // It returns the combined output if hidden is true. Otherwise all output will be printed directly to stdout.
 func Execute(hidden bool, programName string, args ...string) (string, error) {
 	if _, err := exec.LookPath(programName); err != nil {
-		cli.Error("'%s' ist not installed!", programName)
-		return "", err
+		return "", fmt.Errorf("'%s' ist not installed!", programName)
 	}
 	cmd := exec.Command(programName, args...)
 
@@ -40,9 +37,9 @@ func Execute(hidden bool, programName string, args ...string) (string, error) {
 	outStr := string(out)
 	if err != nil {
 		if outStr != "" {
-			err = cli.Error("'%s' returned with an error:\n%s", programName, outStr)
+			err = fmt.Errorf("'%s' returned with an error:\n%s", programName, outStr)
 		} else {
-			err = cli.Error("Failed to execute '%s %s'.", programName, strings.Join(args, " "))
+			err = fmt.Errorf("Failed to execute '%s %s'.", programName, strings.Join(args, " "))
 		}
 	}
 

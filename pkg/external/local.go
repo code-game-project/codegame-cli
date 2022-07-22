@@ -5,7 +5,7 @@ import (
 	"strings"
 
 	"github.com/Bananenpro/cli"
-	"github.com/code-game-project/codegame-cli/util/exec"
+	"github.com/code-game-project/codegame-cli/pkg/exec"
 )
 
 // GetUsername tries to determine the name of the current user.

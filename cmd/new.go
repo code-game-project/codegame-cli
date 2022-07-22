@@ -1,11 +1,12 @@
-package commands
+/*
+Copyright © 2022 NAME HERE <EMAIL ADDRESS>
+
+*/
+package cmd
 
 import (
-	_ "embed"
-	"encoding/json"
 	"errors"
 	"fmt"
-	"net/http"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -13,13 +14,17 @@ import (
 	"text/template"
 	"time"
 
+	_ "embed"
+
 	"github.com/Bananenpro/cli"
-	"github.com/code-game-project/codegame-cli/util/cgfile"
-	"github.com/code-game-project/codegame-cli/util/cggenevents"
-	"github.com/code-game-project/codegame-cli/util/exec"
-	"github.com/code-game-project/codegame-cli/util/external"
-	"github.com/code-game-project/codegame-cli/util/modules"
-	"github.com/code-game-project/codegame-cli/util/semver"
+	"github.com/code-game-project/codegame-cli/pkg/cgfile"
+	"github.com/code-game-project/codegame-cli/pkg/cggenevents"
+	"github.com/code-game-project/codegame-cli/pkg/exec"
+	"github.com/code-game-project/codegame-cli/pkg/external"
+	"github.com/code-game-project/codegame-cli/pkg/modules"
+	"github.com/code-game-project/codegame-cli/pkg/semver"
+	"github.com/code-game-project/codegame-cli/pkg/server"
+	"github.com/spf13/cobra"
 )
 
 //go:embed templates/events.cge.tmpl
@@ -27,65 +32,60 @@ var eventsCGETemplate string
 
 var projectNameRegexp = regexp.MustCompile(`^[a-zA-Z0-9_\-]*$`)
 
-func New() error {
-	var project string
-	if len(os.Args) >= 3 {
-		project = strings.ToLower(os.Args[2])
-	} else {
-		var err error
-		project, err = cli.SelectString("Project type:", []string{"Game Client", "Game Server"}, []string{"client", "server"})
-		if err != nil {
-			return err
+// newCmd represents the new command
+var newCmd = &cobra.Command{
+	Use:   "new",
+	Short: "Create a new CodeGame application.",
+	Args:  cobra.RangeArgs(0, 1),
+	Run: func(cmd *cobra.Command, args []string) {
+		var project string
+		if len(args) > 0 {
+			project = strings.ToLower(args[0])
+		} else {
+			var err error
+			project, err = cli.SelectString("Project type:", []string{"Game Client", "Game Server"}, []string{"client", "server"})
+			abort(err)
 		}
-	}
 
-	projectName, err := cli.Input("Project name:", cli.Regexp(projectNameRegexp, "Project name must only contain 'a'-'z','A'-'Z','0'-'9','-','_'."))
-	if err != nil {
-		return err
-	}
+		projectName, err := cli.Input("Project name:", cli.Regexp(projectNameRegexp, "Project name must only contain 'a'-'z','A'-'Z','0'-'9','-','_'."))
+		abort(err)
 
-	if _, err := os.Stat(projectName); err == nil {
-		return cli.Error("Project '%s' already exists.", projectName)
-	}
+		if _, err := os.Stat(projectName); err == nil {
+			abort(fmt.Errorf("project '%s' already exists.", projectName))
+		}
 
-	err = os.MkdirAll(projectName, 0755)
-	if err != nil {
-		return err
-	}
-	err = os.Chdir(projectName)
-	if err != nil {
-		return err
-	}
+		err = os.MkdirAll(projectName, 0755)
+		abort(err)
+		err = os.Chdir(projectName)
+		abort(err)
 
-	switch project {
-	case "server":
-		err = newServer(projectName)
-	case "client":
-		err = newClient()
-	default:
-		err = cli.Error("Unknown project type: %s", project)
-	}
+		switch project {
+		case "server":
+			err = newServer(projectName)
+		case "client":
+			err = newClient()
+		default:
+			err = fmt.Errorf("unknown project type: %s", project)
+		}
 
-	if err != nil {
-		deleteCurrentDir()
-		return err
-	}
+		if err != nil {
+			deleteCurrentDir()
+			abort(err)
+		}
 
-	err = git()
-	if err != nil {
-		return err
-	}
-	err = readme(projectName)
-	if err != nil {
-		return err
-	}
-	err = license()
-	if err != nil {
-		return err
-	}
+		err = git()
+		abort(err)
+		err = readme(projectName)
+		abort(err)
+		err = license()
+		abort(err)
 
-	cli.PrintColor(cli.GreenBold, "Successfully created project in '%s/'.", projectName)
-	return nil
+		cli.PrintColor(cli.GreenBold, "Successfully created project in '%s/'.", projectName)
+	},
+}
+
+func init() {
+	rootCmd.AddCommand(newCmd)
 }
 
 func newServer(projectName string) error {
@@ -107,7 +107,7 @@ func newServer(projectName string) error {
 	}
 	err := file.Write("")
 	if err != nil {
-		return cli.Error("Failed to create .codegame.json: %s", err)
+		return fmt.Errorf("Failed to create .codegame.json: %s", err)
 	}
 
 	switch language {
@@ -118,7 +118,7 @@ func newServer(projectName string) error {
 	case "ts":
 		err = modules.Execute("js", "latest", "server", "new", "server", "--typescript")
 	default:
-		return cli.Error("'new server' is not supported for '%s'", language)
+		return fmt.Errorf("'new server' is not supported for '%s'", language)
 	}
 	if err != nil {
 		return err
@@ -156,12 +156,19 @@ func newClient() error {
 	if err != nil {
 		return err
 	}
-	url = baseURL(url)
-	name, cgVersion, err := getCodeGameInfo(url)
+	api, err := server.NewAPI(url)
 	if err != nil {
 		return err
 	}
-	cgeVersion, err := cggenevents.GetCGEVersion(url)
+	info, err := api.FetchGameInfo()
+	if err != nil {
+		return err
+	}
+	cge, err := api.GetCGEFile()
+	if err != nil {
+		return err
+	}
+	cgeVersion, err := cggenevents.ParseCGEVersion(cge)
 	if err != nil {
 		return err
 	}
@@ -179,32 +186,32 @@ func newClient() error {
 
 	cgeMajor, cgeMinor, _, err := semver.ParseVersion(cgeVersion)
 	if err != nil {
-		return cli.Error(err.Error())
+		return err
 	}
 
 	file := cgfile.CodeGameFileData{
-		Game: name,
+		Game: info.Name,
 		Type: "client",
 		Lang: language,
-		URL:  trimURL(url),
+		URL:  external.TrimURL(url),
 	}
 	err = file.Write("")
 	if err != nil {
-		return cli.Error("Failed to create .codegame.json: %s", err)
+		return fmt.Errorf("Failed to create .codegame.json: %s", err)
 	}
 
 	switch language {
 	case "go":
-		libraryVersion := external.LibraryVersionFromCGVersion("code-game-project", "go-client", cgVersion)
-		err = modules.Execute("go", libraryVersion, "client", "new", "client", "--library-version="+libraryVersion, "--game-name="+name, "--url="+trimURL(url), fmt.Sprintf("--generate-wrappers=%t", cgeMajor > 0 || cgeMinor >= 3))
+		libraryVersion := external.LibraryVersionFromCGVersion("code-game-project", "go-client", info.CGVersion)
+		err = modules.Execute("go", libraryVersion, "client", "new", "client", "--library-version="+libraryVersion, "--game-name="+info.Name, "--url="+external.TrimURL(url), fmt.Sprintf("--generate-wrappers=%t", cgeMajor > 0 || cgeMinor >= 3))
 	case "js":
-		libraryVersion := external.LibraryVersionFromCGVersion("code-game-project", "javascript-client", cgVersion)
-		err = modules.Execute("js", libraryVersion, "client", "new", "client", "--library-version="+libraryVersion, "--game-name="+name, "--url="+trimURL(url))
+		libraryVersion := external.LibraryVersionFromCGVersion("code-game-project", "javascript-client", info.CGVersion)
+		err = modules.Execute("js", libraryVersion, "client", "new", "client", "--library-version="+libraryVersion, "--game-name="+info.Name, "--url="+external.TrimURL(url))
 	case "ts":
-		libraryVersion := external.LibraryVersionFromCGVersion("code-game-project", "javascript-client", cgVersion)
-		err = modules.Execute("js", libraryVersion, "client", "new", "client", "--typescript", "--library-version="+libraryVersion, "--game-name="+name, "--url="+trimURL(url))
+		libraryVersion := external.LibraryVersionFromCGVersion("code-game-project", "javascript-client", info.CGVersion)
+		err = modules.Execute("js", libraryVersion, "client", "new", "client", "--typescript", "--library-version="+libraryVersion, "--game-name="+info.Name, "--url="+external.TrimURL(url))
 	default:
-		return cli.Error("'new client' is not supported for '%s'", language)
+		return fmt.Errorf("'new client' is not supported for '%s'", language)
 	}
 	if err != nil {
 		return err
@@ -212,7 +219,7 @@ func newClient() error {
 
 	eventsOutput := "."
 	if language == "go" {
-		eventsOutput = strings.ReplaceAll(strings.ReplaceAll(name, "-", ""), "_", "")
+		eventsOutput = strings.ReplaceAll(strings.ReplaceAll(info.Name, "-", ""), "_", "")
 	}
 
 	if language == "go" || language == "ts" {
@@ -261,11 +268,7 @@ func readme(projectName string) error {
 
 	fileContent := fmt.Sprintf("# %s", projectName)
 
-	err = os.WriteFile("README.md", []byte(fileContent), 0644)
-	if err != nil {
-		cli.Error(err.Error())
-	}
-	return err
+	return os.WriteFile("README.md", []byte(fileContent), 0644)
 }
 
 //go:embed templates/licenses/MIT.tmpl
@@ -345,7 +348,7 @@ func writeLicense(templateText, username string, year int) error {
 
 	file, err := os.Create("LICENSE")
 	if err != nil {
-		return cli.Error("Failed to create LICENSE file!")
+		return fmt.Errorf("Failed to create LICENSE file!")
 	}
 	defer file.Close()
 
@@ -358,7 +361,7 @@ func writeLicense(templateText, username string, year int) error {
 func writeReadmeLicense(templateText, username string, year int) error {
 	readme, err := os.OpenFile("README.md", os.O_APPEND|os.O_WRONLY, 0755)
 	if err != nil {
-		return cli.Error("Failed to append license text to README.")
+		return fmt.Errorf("Failed to append license text to README.")
 	}
 	defer readme.Close()
 
@@ -378,31 +381,6 @@ func writeReadmeLicense(templateText, username string, year int) error {
 		Year:     year,
 		Username: username,
 	})
-}
-
-func getCodeGameInfo(baseURL string) (name string, cgVersion string, err error) {
-	type response struct {
-		Name      string `json:"name"`
-		CGVersion string `json:"cg_version"`
-		Version   string `json:"version"`
-	}
-	url := baseURL + "/info"
-	res, err := http.Get(url)
-	if err != nil || res.StatusCode != http.StatusOK {
-		return "", "", cli.Error("Couldn't access %s.", url)
-	}
-	if !external.HasContentType(res.Header, "application/json") {
-		return "", "", cli.Error("%s doesn't return JSON.", url)
-	}
-	defer res.Body.Close()
-
-	var data response
-	err = json.NewDecoder(res.Body).Decode(&data)
-	if err != nil {
-		return "", "", cli.Error("Couldn't decode /info data.")
-	}
-
-	return data.Name, data.CGVersion, nil
 }
 
 func execTemplate(templateText, path string, data any) error {
@@ -437,36 +415,4 @@ func deleteCurrentDir() {
 	os.Chdir("..")
 
 	os.RemoveAll(name)
-}
-
-func trimURL(url string) string {
-	if strings.HasPrefix(url, "http://") {
-		url = strings.TrimPrefix(url, "http://")
-	} else if strings.HasPrefix(url, "https://") {
-		url = strings.TrimPrefix(url, "https://")
-	} else if strings.HasPrefix(url, "ws://") {
-		url = strings.TrimPrefix(url, "ws://")
-	} else if strings.HasPrefix(url, "wss://") {
-		url = strings.TrimPrefix(url, "wss://")
-	}
-	return strings.TrimSuffix(url, "/")
-}
-
-// baseURL returns the URL with the correct protocol ('http://' or 'https://')
-func baseURL(url string) string {
-	url = trimURL(url)
-	if isSSL(url) {
-		return "https://" + url
-	} else {
-		return "http://" + url
-	}
-}
-
-func isSSL(domain string) bool {
-	res, err := http.Get("https://" + domain)
-	if err == nil {
-		res.Body.Close()
-		return true
-	}
-	return false
 }

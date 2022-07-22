@@ -1,10 +1,9 @@
 package cgfile
 
 import (
+	"fmt"
 	"os"
 	"path/filepath"
-
-	"github.com/Bananenpro/cli"
 )
 
 func FindProjectRoot() (string, error) {
@@ -26,7 +25,7 @@ func FindProjectRoot() (string, error) {
 
 		parent := filepath.Dir(filepath.Clean(dir))
 		if parent == dir {
-			return "", cli.Error("Not in a CodeGame project directory")
+			return "", fmt.Errorf("Not in a CodeGame project directory")
 		}
 		dir = parent
 	}

@@ -11,8 +11,8 @@ import (
 
 	"github.com/Bananenpro/cli"
 	"github.com/adrg/xdg"
-	"github.com/code-game-project/codegame-cli/util/external"
-	"github.com/code-game-project/codegame-cli/util/semver"
+	"github.com/code-game-project/codegame-cli/pkg/external"
+	"github.com/code-game-project/codegame-cli/pkg/semver"
 )
 
 var modulesPath = filepath.Join(xdg.DataHome, "codegame", "bin", "codegame-cli", "modules")
@@ -20,18 +20,17 @@ var modulesPath = filepath.Join(xdg.DataHome, "codegame", "bin", "codegame-cli",
 func Execute(name, libraryVersion, projectType string, args ...string) error {
 	version, err := findModuleVersion(name, libraryVersion, projectType)
 	if err != nil {
-		return cli.Error(err.Error())
+		return err
 	}
 
 	exeName, err := installModule(name, version)
 	if err != nil {
-		return cli.Error(err.Error())
+		return err
 	}
 
 	programName := filepath.Join(modulesPath, name, exeName)
 	if _, err := exec.LookPath(programName); err != nil {
-		cli.Error("'%s' ist not installed!", programName)
-		return err
+		return fmt.Errorf("'%s' ist not installed!", programName)
 	}
 	cmd := exec.Command(programName, args...)
 	cmd.Stdin = os.Stdin
