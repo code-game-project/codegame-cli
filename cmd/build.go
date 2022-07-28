@@ -1,35 +1,42 @@
-/*
-Copyright © 2022 NAME HERE <EMAIL ADDRESS>
-
-*/
 package cmd
 
 import (
 	"fmt"
+	"os"
 
 	"github.com/code-game-project/codegame-cli/pkg/cgfile"
+	"github.com/code-game-project/codegame-cli/pkg/external"
 	"github.com/code-game-project/codegame-cli/pkg/modules"
 	"github.com/spf13/cobra"
 )
 
 // buildCmd represents the build command
 var buildCmd = &cobra.Command{
-	Use:                "build",
-	Short:              "Build the current project.",
-	DisableFlagParsing: true,
+	Use:   "build",
+	Short: "Build the current project.",
 	Run: func(cmd *cobra.Command, args []string) {
-		rootRelative, err := cgfile.FindProjectRootRelative()
+		root, err := cgfile.FindProjectRoot()
+		abort(err)
+		err = os.Chdir(root)
 		abort(err)
 
-		data, err := cgfile.LoadCodeGameFile(rootRelative)
+		data, err := cgfile.LoadCodeGameFile("")
 		abortf("failed to load .codegame.json: %w", err)
+		data.URL = external.TrimURL(data.URL)
+		abort(data.Write(""))
 
 		cmdArgs := []string{"build"}
 		cmdArgs = append(cmdArgs, args...)
 
+		output, err := cmd.Flags().GetString("output")
+		abort(err)
+		buildData := modules.BuildData{
+			Lang:   data.Lang,
+			Output: output,
+		}
 		switch data.Lang {
 		case "go":
-			err = modules.Execute("go", "latest", data.Type, cmdArgs...)
+			err = modules.ExecuteBuild(buildData, data)
 			abort(err)
 		default:
 			abort(fmt.Errorf("'build' is not supported for '%s'", data.Lang))
@@ -39,4 +46,5 @@ var buildCmd = &cobra.Command{
 
 func init() {
 	rootCmd.AddCommand(buildCmd)
+	buildCmd.Flags().StringP("output", "o", "", "The name of the output file.")
 }

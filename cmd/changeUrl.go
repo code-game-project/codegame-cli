@@ -1,16 +1,12 @@
-/*
-Copyright © 2022 NAME HERE <EMAIL ADDRESS>
-
-*/
 package cmd
 
 import (
 	"errors"
-	"os"
 	"strings"
 
 	"github.com/Bananenpro/cli"
 	"github.com/code-game-project/codegame-cli/pkg/cgfile"
+	"github.com/code-game-project/codegame-cli/pkg/external"
 	"github.com/code-game-project/codegame-cli/pkg/server"
 	"github.com/spf13/cobra"
 )
@@ -25,8 +21,8 @@ var changeUrlCmd = &cobra.Command{
 		abort(err)
 
 		var url string
-		if len(os.Args) >= 3 {
-			url = strings.ToLower(os.Args[2])
+		if len(args) > 0 {
+			url = strings.ToLower(args[0])
 		} else {
 			var err error
 			url, err = cli.Input("New game URL:")
@@ -50,7 +46,7 @@ var changeUrlCmd = &cobra.Command{
 
 		prevURL := config.URL
 
-		config.URL = url
+		config.URL = external.TrimURL(url)
 		err = config.Write(root)
 		abort(err)
 

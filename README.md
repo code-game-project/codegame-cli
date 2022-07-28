@@ -140,6 +140,93 @@ cd codegame-cli
 go build .
 ```
 
+## Modules
+
+Language specific functionality is provided by modules.
+*codegame-cli* automatically downloads the correct module version corresponding to the CodeGame version and
+executes the downloaded binary at the root of the project directory with the respective command.
+
+Additionally, the _CONFIG_FILE_ environment variable is set with the path to a temporary file containing command specific configuration in JSON format.
+
+Modules can be implemented in any language. However, it is recommended to write them in Go
+using the `github.com/code-game-project/codegame-cli/pkg/*` packages and the `github.com/Bananenpro/cli` package for CLI interaction in order to be consistent with the CLI and other modules.
+
+### new
+
+Creates a new project of the type provided by a second command line argument:
+
+#### client
+
+Creates a new game client.
+This includes integration with the client library for the language, a functioning template with a main file and language specific metadata files like `package.json` or similar
+and wrappers around the library to make its usage easier including setting the game URL with the CG_GAME_URL environment variable (required).
+
+##### config data
+
+```jsonc
+{
+	"lang": "go", // the chosen programming language (in case one module supports multiple languages)
+	"name": "my_game", // the name of the game
+	"url": "my_game.example.com", // the URL of the game server
+	"library_version": "0.9.2" // the version of the client library to use
+}
+```
+
+#### server
+
+Creates a new game server.
+This includes integration with the server library of the language and a functioning template, which implements common logic like starting the server and providing a game class.
+
+##### config data
+
+```jsonc
+{
+	"lang": "go", // the chosen programming language (in case one module supports multiple languages)
+	"library_version": "0.9.2" // the version of the server library to use
+}
+```
+
+### update
+
+Updates the library to the specified version and all other dependencies used by the project to their newest compatible version.
+Additionally all wrappers are updated.
+
+##### config data
+
+```jsonc
+{
+	"lang": "go", // the chosen programming language (in case one module supports multiple languages)
+	"library_version": "0.9.2" // the new version of the library to use
+}
+
+```
+
+### run
+
+Runs the project with the specified command line arguments.
+
+##### config data
+
+```jsonc
+{
+	"lang": "go", // the chosen programming language (in case one module supports multiple languages)
+	"args": ["-f", "my_file.txt"] // the command line arguments for the application
+}
+```
+
+### build
+
+Builds the projects and injects the URL specified in the `.codegame.json` file, which makes the *CG_GAME_URL* environment variable optional.
+
+##### config data
+
+```jsonc
+{
+	"lang": "go", // the chosen programming language (in case one module supports multiple languages)
+	"output": "bin/my-game" // The name of the output file
+}
+```
+
 ## License
 
 Copyright (c) 2022 CodeGame Contributors (https://code-game.org/contributors)

@@ -11,28 +11,83 @@ import (
 
 	"github.com/Bananenpro/cli"
 	"github.com/adrg/xdg"
+	"github.com/code-game-project/codegame-cli/pkg/cgfile"
 	"github.com/code-game-project/codegame-cli/pkg/external"
 	"github.com/code-game-project/codegame-cli/pkg/semver"
 )
 
 var modulesPath = filepath.Join(xdg.DataHome, "codegame", "bin", "codegame-cli", "modules")
 
-func Execute(name, libraryVersion, projectType string, args ...string) error {
-	version, err := findModuleVersion(name, libraryVersion, projectType)
+func ExecuteNewClient(data NewClientData) error {
+	jsonData, err := json.Marshal(data)
+	if err != nil {
+		return err
+	}
+	return execute(data.Lang, data.LibraryVersion, "client", jsonData, "new", "client")
+}
+
+func ExecuteNewServer(data NewServerData) error {
+	jsonData, err := json.Marshal(data)
+	if err != nil {
+		return err
+	}
+	return execute(data.Lang, data.LibraryVersion, "server", jsonData, "new", "server")
+}
+
+func ExecuteUpdate(data UpdateData, cgData *cgfile.CodeGameFileData) error {
+	jsonData, err := json.Marshal(data)
+	if err != nil {
+		return err
+	}
+	return execute(cgData.Lang, data.LibraryVersion, cgData.Type, jsonData, "update")
+}
+
+func ExecuteRun(data RunData, cgData *cgfile.CodeGameFileData) error {
+	jsonData, err := json.Marshal(data)
+	if err != nil {
+		return err
+	}
+	return execute(cgData.Lang, "latest", cgData.Type, jsonData, "run")
+}
+
+func ExecuteBuild(data BuildData, cgData *cgfile.CodeGameFileData) error {
+	jsonData, err := json.Marshal(data)
+	if err != nil {
+		return err
+	}
+	return execute(cgData.Lang, "latest", cgData.Type, jsonData, "build")
+}
+
+func execute(lang, libraryVersion, projectType string, data []byte, args ...string) error {
+	version, err := findModuleVersion(lang, libraryVersion, projectType)
 	if err != nil {
 		return err
 	}
 
-	exeName, err := installModule(name, version)
+	exeName, err := installModule(lang, version)
 	if err != nil {
 		return err
 	}
 
-	programName := filepath.Join(modulesPath, name, exeName)
+	programName := filepath.Join(modulesPath, lang, exeName)
 	if _, err := exec.LookPath(programName); err != nil {
 		return fmt.Errorf("'%s' ist not installed!", programName)
 	}
+
+	configFile, err := os.CreateTemp("", "codegame-cli-module-config-*.json")
+	if err != nil {
+		return err
+	}
+	defer os.Remove(configFile.Name())
+
+	_, err = configFile.Write(data)
+	configFile.Close()
+	if err != nil {
+		return err
+	}
+
 	cmd := exec.Command(programName, args...)
+	cmd.Env = append(os.Environ(), "CONFIG_FILE="+configFile.Name())
 	cmd.Stdin = os.Stdin
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr

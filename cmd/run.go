@@ -1,13 +1,11 @@
-/*
-Copyright © 2022 NAME HERE <EMAIL ADDRESS>
-
-*/
 package cmd
 
 import (
 	"fmt"
+	"os"
 
 	"github.com/code-game-project/codegame-cli/pkg/cgfile"
+	"github.com/code-game-project/codegame-cli/pkg/external"
 	"github.com/code-game-project/codegame-cli/pkg/modules"
 	"github.com/spf13/cobra"
 )
@@ -19,18 +17,24 @@ var runCmd = &cobra.Command{
 	DisableFlagParsing: true,
 	Args:               cobra.ArbitraryArgs,
 	Run: func(cmd *cobra.Command, args []string) {
-		rootRelative, err := cgfile.FindProjectRootRelative()
+		root, err := cgfile.FindProjectRoot()
+		abort(err)
+		err = os.Chdir(root)
 		abort(err)
 
-		data, err := cgfile.LoadCodeGameFile(rootRelative)
+		data, err := cgfile.LoadCodeGameFile("")
 		abortf("failed to load .codegame.json: %w", err)
+		data.URL = external.TrimURL(data.URL)
+		abort(data.Write(""))
 
-		cmdArgs := []string{"run"}
-		cmdArgs = append(cmdArgs, args...)
+		runData := modules.RunData{
+			Lang: data.Lang,
+			Args: args,
+		}
 
 		switch data.Lang {
 		case "go":
-			err = modules.Execute("go", "latest", data.Type, cmdArgs...)
+			err = modules.ExecuteRun(runData, data)
 			abort(err)
 		default:
 			abort(fmt.Errorf("'run' is not supported for '%s'", data.Lang))

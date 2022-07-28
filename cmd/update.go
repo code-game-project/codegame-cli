@@ -1,7 +1,3 @@
-/*
-Copyright © 2022 NAME HERE <EMAIL ADDRESS>
-
-*/
 package cmd
 
 import (
@@ -45,6 +41,11 @@ func update() error {
 	if err != nil {
 		return fmt.Errorf("Failed to load .codegame.json")
 	}
+	data.URL = external.TrimURL(data.URL)
+	err = data.Write("")
+	if err != nil {
+		return err
+	}
 
 	switch data.Type {
 	case "client":
@@ -78,12 +79,16 @@ func updateClient(config *cgfile.CodeGameFileData) error {
 		return err
 	}
 
+	updateData := modules.UpdateData{
+		Lang: config.Lang,
+	}
+
 	switch config.Lang {
 	case "go":
-		libraryVersion := external.LibraryVersionFromCGVersion("code-game-project", "go-client", info.CGVersion)
-		err = modules.Execute("go", libraryVersion, "client", "update", "--library-version="+libraryVersion)
+		updateData.Lang = external.LibraryVersionFromCGVersion("code-game-project", "go-client", info.CGVersion)
+		err = modules.ExecuteUpdate(updateData, config)
 	default:
-		return fmt.Errorf("'update' is not supported for '%s'", config.Lang)
+		err = fmt.Errorf("'update' is not supported for '%s'", config.Lang)
 	}
 	if err != nil {
 		return err
@@ -102,9 +107,14 @@ func updateClient(config *cgfile.CodeGameFileData) error {
 }
 
 func updateServer(config *cgfile.CodeGameFileData) error {
+	updateData := modules.UpdateData{
+		Lang:           config.Lang,
+		LibraryVersion: "latest",
+	}
+
 	switch config.Lang {
 	case "go":
-		return modules.Execute("go", "latest", "server", "update")
+		return modules.ExecuteUpdate(updateData, config)
 	default:
 		return fmt.Errorf("'update' is not supported for '%s'", config.Lang)
 	}

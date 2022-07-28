@@ -2,8 +2,8 @@ package cmd
 
 import (
 	"errors"
-	"fmt"
 	"os"
+	"os/exec"
 
 	"github.com/Bananenpro/cli"
 	"github.com/spf13/cobra"
@@ -31,14 +31,8 @@ func abort(err error) {
 		return
 	}
 
-	if errors.Is(err, cli.ErrCanceled) {
-		cli.Print(err.Error())
-	} else {
+	if _, ok := err.(*exec.ExitError); !ok && !errors.Is(err, cli.ErrCanceled) {
 		cli.Error(err.Error())
-	}
-
-	if err == cli.ErrCanceled {
-		os.Exit(0)
 	}
 	os.Exit(1)
 }
@@ -50,14 +44,8 @@ func abortf(format string, err error) {
 		return
 	}
 
-	if errors.Is(err, cli.ErrCanceled) {
-		cli.Print(format, err)
-	} else {
-		cli.Error(fmt.Errorf(format, err).Error())
-	}
-
-	if err == cli.ErrCanceled {
-		os.Exit(0)
+	if _, ok := err.(*exec.ExitError); !ok && !errors.Is(err, cli.ErrCanceled) {
+		cli.Error(err.Error())
 	}
 	os.Exit(1)
 }

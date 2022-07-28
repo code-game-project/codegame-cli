@@ -1,7 +1,3 @@
-/*
-Copyright © 2022 NAME HERE <EMAIL ADDRESS>
-
-*/
 package cmd
 
 import (
@@ -22,7 +18,6 @@ import (
 	"github.com/code-game-project/codegame-cli/pkg/exec"
 	"github.com/code-game-project/codegame-cli/pkg/external"
 	"github.com/code-game-project/codegame-cli/pkg/modules"
-	"github.com/code-game-project/codegame-cli/pkg/semver"
 	"github.com/code-game-project/codegame-cli/pkg/server"
 	"github.com/spf13/cobra"
 )
@@ -89,15 +84,9 @@ func init() {
 }
 
 func newServer(projectName string) error {
-	var language string
-	if len(os.Args) >= 4 {
-		language = strings.ToLower(os.Args[3])
-	} else {
-		var err error
-		language, err = cli.SelectString("Language:", []string{"Go", "JavaScript", "TypeScript"}, []string{"go", "js", "ts"})
-		if err != nil {
-			return err
-		}
+	language, err := cli.SelectString("Language:", []string{"Go", "JavaScript", "TypeScript"}, []string{"go", "js", "ts"})
+	if err != nil {
+		return err
 	}
 
 	file := cgfile.CodeGameFileData{
@@ -105,20 +94,21 @@ func newServer(projectName string) error {
 		Type: "server",
 		Lang: language,
 	}
-	err := file.Write("")
+	err = file.Write("")
 	if err != nil {
-		return fmt.Errorf("Failed to create .codegame.json: %s", err)
+		return fmt.Errorf("Failed to create .codegame.json: %w", err)
+	}
+
+	newData := modules.NewServerData{
+		Lang:           language,
+		LibraryVersion: "latest",
 	}
 
 	switch language {
-	case "go":
-		err = modules.Execute("go", "latest", "server", "new", "server")
-	case "js":
-		err = modules.Execute("js", "latest", "server", "new", "server")
-	case "ts":
-		err = modules.Execute("js", "latest", "server", "new", "server", "--typescript")
+	case "go", "js", "ts":
+		err = modules.ExecuteNewServer(newData)
 	default:
-		return fmt.Errorf("'new server' is not supported for '%s'", language)
+		err = fmt.Errorf("'new server' is not supported for '%s'", language)
 	}
 	if err != nil {
 		return err
@@ -156,6 +146,7 @@ func newClient() error {
 	if err != nil {
 		return err
 	}
+	url = external.TrimURL(url)
 	api, err := server.NewAPI(url)
 	if err != nil {
 		return err
@@ -173,18 +164,7 @@ func newClient() error {
 		return err
 	}
 
-	var language string
-	if len(os.Args) >= 4 {
-		language = strings.ToLower(os.Args[3])
-	} else {
-		var err error
-		language, err = cli.SelectString("Language:", []string{"Go", "JavaScript", "TypeScript"}, []string{"go", "js", "ts"})
-		if err != nil {
-			return err
-		}
-	}
-
-	cgeMajor, cgeMinor, _, err := semver.ParseVersion(cgeVersion)
+	language, err := cli.SelectString("Language:", []string{"Go", "JavaScript", "TypeScript"}, []string{"go", "js", "ts"})
 	if err != nil {
 		return err
 	}
@@ -193,25 +173,28 @@ func newClient() error {
 		Game: info.Name,
 		Type: "client",
 		Lang: language,
-		URL:  external.TrimURL(url),
+		URL:  url,
 	}
 	err = file.Write("")
 	if err != nil {
 		return fmt.Errorf("Failed to create .codegame.json: %s", err)
 	}
 
+	newData := modules.NewClientData{
+		Lang: language,
+		Name: info.Name,
+		URL:  url,
+	}
+
 	switch language {
 	case "go":
-		libraryVersion := external.LibraryVersionFromCGVersion("code-game-project", "go-client", info.CGVersion)
-		err = modules.Execute("go", libraryVersion, "client", "new", "client", "--library-version="+libraryVersion, "--game-name="+info.Name, "--url="+external.TrimURL(url), fmt.Sprintf("--generate-wrappers=%t", cgeMajor > 0 || cgeMinor >= 3))
-	case "js":
-		libraryVersion := external.LibraryVersionFromCGVersion("code-game-project", "javascript-client", info.CGVersion)
-		err = modules.Execute("js", libraryVersion, "client", "new", "client", "--library-version="+libraryVersion, "--game-name="+info.Name, "--url="+external.TrimURL(url))
-	case "ts":
-		libraryVersion := external.LibraryVersionFromCGVersion("code-game-project", "javascript-client", info.CGVersion)
-		err = modules.Execute("js", libraryVersion, "client", "new", "client", "--typescript", "--library-version="+libraryVersion, "--game-name="+info.Name, "--url="+external.TrimURL(url))
+		newData.LibraryVersion = external.LibraryVersionFromCGVersion("code-game-project", "go-client", info.CGVersion)
+		err = modules.ExecuteNewClient(newData)
+	case "js", "ts":
+		newData.LibraryVersion = external.LibraryVersionFromCGVersion("code-game-project", "javascript-client", info.CGVersion)
+		err = modules.ExecuteNewClient(newData)
 	default:
-		return fmt.Errorf("'new client' is not supported for '%s'", language)
+		err = fmt.Errorf("'new client' is not supported for '%s'", language)
 	}
 	if err != nil {
 		return err
@@ -223,7 +206,7 @@ func newClient() error {
 	}
 
 	if language == "go" || language == "ts" {
-		err = cggenevents.CGGenEvents(cgeVersion, eventsOutput, url, language)
+		err = cggenevents.CGGenEvents(cgeVersion, eventsOutput, external.BaseURL("http", external.IsTLS(url), url), language)
 		if err != nil {
 			return err
 		}

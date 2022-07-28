@@ -3,9 +3,9 @@ module github.com/code-game-project/codegame-cli
 go 1.18
 
 require (
-	github.com/Bananenpro/cli v0.1.3
+	github.com/Bananenpro/cli v0.1.5
 	github.com/adrg/xdg v0.4.0
-	github.com/gomarkdown/markdown v0.0.0-20220607163217-45f7c050e2d1
+	github.com/gomarkdown/markdown v0.0.0-20220627144906-e9a81102ebeb
 	github.com/mattn/go-colorable v0.1.12
 	github.com/spf13/cobra v1.5.0
 )
@@ -17,8 +17,8 @@ require (
 	github.com/mattn/go-isatty v0.0.14 // indirect
 	github.com/mgutz/ansi v0.0.0-20200706080929-d51e80ef957d // indirect
 	github.com/spf13/pflag v1.0.5 // indirect
-	golang.org/x/sys v0.0.0-20220615213510-4f61da869c0c // indirect
-	golang.org/x/term v0.0.0-20220526004731-065cf7ba2467 // indirect
+	golang.org/x/sys v0.0.0-20220728004956-3c1f35247d10 // indirect
+	golang.org/x/term v0.0.0-20220722155259-a9ba230a4035 // indirect
 	golang.org/x/text v0.3.7 // indirect
 	gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b // indirect
 )
