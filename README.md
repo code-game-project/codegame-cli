@@ -1,6 +1,5 @@
 # codegame-cli
-![CG Server Version](https://img.shields.io/badge/GameServer-v0.1+-yellow)
-![CG Client Version](https://img.shields.io/badge/Client-v0.3+-yellow)
+![CodeGame Version](https://img.shields.io/badge/CodeGame-v0.6+-orange)
 
 The official [CodeGame](https://code-game.org) CLI.
 
@@ -229,7 +228,7 @@ Builds the projects and injects the URL specified in the `.codegame.json` file, 
 
 ## License
 
-Copyright (c) 2022 CodeGame Contributors (https://code-game.org/contributors)
+Copyright (c) 2022 Julian Hofmann
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
