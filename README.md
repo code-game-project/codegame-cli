@@ -202,7 +202,7 @@ Additionally all wrappers are updated.
 
 ### run
 
-Runs the project with the specified command line arguments.
+Runs the project with the specified command line arguments and the *CG_GAME_URL* environment variable set to the URL specified in the `.codegame.json` file.
 
 ##### config data
 
