@@ -7,9 +7,9 @@ import (
 	_ "embed"
 
 	"github.com/Bananenpro/cli"
-	"github.com/code-game-project/codegame-cli/pkg/cggenevents"
-	"github.com/code-game-project/codegame-cli/pkg/exec"
-	"github.com/code-game-project/codegame-cli/pkg/server"
+	"github.com/code-game-project/go-utils/cggenevents"
+	"github.com/code-game-project/go-utils/exec"
+	"github.com/code-game-project/go-utils/server"
 	"github.com/gomarkdown/markdown"
 	"github.com/gomarkdown/markdown/html"
 	"github.com/gomarkdown/markdown/parser"

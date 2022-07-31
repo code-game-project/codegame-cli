@@ -8,8 +8,8 @@ import (
 	"unicode/utf8"
 
 	"github.com/Bananenpro/cli"
-	"github.com/code-game-project/codegame-cli/pkg/external"
-	"github.com/code-game-project/codegame-cli/pkg/server"
+	"github.com/code-game-project/go-utils/external"
+	"github.com/code-game-project/go-utils/server"
 	"github.com/mattn/go-colorable"
 	"github.com/spf13/cobra"
 )

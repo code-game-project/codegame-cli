@@ -148,7 +148,7 @@ executes the downloaded binary at the root of the project directory with the res
 Additionally, the _CONFIG_FILE_ environment variable is set with the path to a temporary file containing command specific configuration in JSON format.
 
 Modules can be implemented in any language. However, it is recommended to write them in Go
-using the `github.com/code-game-project/codegame-cli/pkg/*` packages and the `github.com/Bananenpro/cli` package for CLI interaction in order to be consistent with the CLI and other modules.
+using the `github.com/code-game-project/go-utils` and `github.com/Bananenpro/cli` packages in order to avoid bugs and be consistent with the CLI and other modules.
 
 ### new
 

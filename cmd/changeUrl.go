@@ -5,9 +5,9 @@ import (
 	"strings"
 
 	"github.com/Bananenpro/cli"
-	"github.com/code-game-project/codegame-cli/pkg/cgfile"
-	"github.com/code-game-project/codegame-cli/pkg/external"
-	"github.com/code-game-project/codegame-cli/pkg/server"
+	"github.com/code-game-project/go-utils/cgfile"
+	"github.com/code-game-project/go-utils/external"
+	"github.com/code-game-project/go-utils/server"
 	"github.com/spf13/cobra"
 )
 
