@@ -6,8 +6,8 @@ github.com/Netflix/go-expect v0.0.0-20220104043353-73e0943537d2 h1:+vx7roKuyA63n
 github.com/Netflix/go-expect v0.0.0-20220104043353-73e0943537d2/go.mod h1:HBCaDeC1lPdgDeDbhX8XFpy1jqjK0IBG8W5K+xYqA0w=
 github.com/adrg/xdg v0.4.0 h1:RzRqFcjH4nE5C6oTAxhBtoE2IRyjBSa62SCbyPidvls=
 github.com/adrg/xdg v0.4.0/go.mod h1:N6ag73EX4wyxeaoeHctc1mas01KZgsj5tYiAIwqJE/E=
-github.com/code-game-project/go-utils v0.2.2 h1:YFT3GAqCTD8CmFWiv7MZfgNol1ayHdH11//dVNj0wLI=
-github.com/code-game-project/go-utils v0.2.2/go.mod h1:kQ6kH9XDzdM2pnJUI1lw61Gp8XOams/E2dKABa1mBI8=
+github.com/code-game-project/go-utils v0.2.3 h1:nyejoWxktnX9SywtcV8v5BF0xS9M3kwy1v7Xl3RyHp4=
+github.com/code-game-project/go-utils v0.2.3/go.mod h1:kQ6kH9XDzdM2pnJUI1lw61Gp8XOams/E2dKABa1mBI8=
 github.com/cpuguy83/go-md2man/v2 v2.0.2/go.mod h1:tgQtvFlXSQOSOSIRvRPT7W67SCa46tRHOmNcaadrF8o=
 github.com/creack/pty v1.1.17 h1:QeVUsEDNrLBW4tMgZHvxy18sKtr6VI492kBhUfhDJNI=
 github.com/creack/pty v1.1.17/go.mod h1:MOBLtS5ELjhRRrroQr9kyvTxUAFNvYEK993ew/Vr4O4=

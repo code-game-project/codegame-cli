@@ -4,7 +4,8 @@ go 1.18
 
 require (
 	github.com/Bananenpro/cli v0.2.1
-	github.com/code-game-project/go-utils v0.2.2
+	github.com/adrg/xdg v0.4.0
+	github.com/code-game-project/go-utils v0.2.3
 	github.com/gomarkdown/markdown v0.0.0-20220731190611-dcdaee8e7a53
 	github.com/mattn/go-colorable v0.1.12
 	github.com/spf13/cobra v1.5.0
@@ -12,7 +13,6 @@ require (
 
 require (
 	github.com/AlecAivazis/survey/v2 v2.3.5 // indirect
-	github.com/adrg/xdg v0.4.0 // indirect
 	github.com/inconshreveable/mousetrap v1.0.0 // indirect
 	github.com/kballard/go-shellquote v0.0.0-20180428030007-95032a82bc51 // indirect
 	github.com/mattn/go-isatty v0.0.14 // indirect
