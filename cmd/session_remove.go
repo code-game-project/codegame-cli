@@ -16,7 +16,6 @@ var sessionRemoveCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		var gameURL string
 		var username string
-		var err error
 		if len(args) > 0 {
 			gameURL = args[0]
 			if len(args) > 1 {
@@ -52,7 +51,7 @@ var sessionRemoveCmd = &cobra.Command{
 			}
 		}
 
-		yes, err := cli.YesNo(fmt.Sprintf("Are you sure you want to remove '%s/%s'?", gameURL, username), false)
+		yes, err := cli.YesNo(fmt.Sprintf("Are you sure you want to remove %s@%s?", username, gameURL), false)
 		if !yes {
 			if err == nil {
 				cli.Error("Canceled.")
@@ -64,10 +63,7 @@ var sessionRemoveCmd = &cobra.Command{
 			GameURL:  gameURL,
 			Username: username,
 		}.Remove()
-		if err != nil {
-			cli.Error("Failed to remove session: %s", err)
-			return
-		}
+		abortf("Failed to remove session: %s", err)
 		cli.Success("Successfully removed session.")
 	},
 }

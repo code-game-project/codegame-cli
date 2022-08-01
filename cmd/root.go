@@ -45,7 +45,7 @@ func abortf(format string, err error) {
 	}
 
 	if _, ok := err.(*exec.ExitError); !ok && !errors.Is(err, cli.ErrCanceled) {
-		cli.Error(err.Error())
+		cli.Error(format, err)
 	}
 	os.Exit(1)
 }

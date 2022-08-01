@@ -12,10 +12,7 @@ var sessionListCmd = &cobra.Command{
 	Short: "List all available sessions.",
 	Run: func(cmd *cobra.Command, args []string) {
 		sessionList, err := sessions.ListSessions()
-		if err != nil {
-			cli.Error("Failed to retrieve session list: %s", err)
-			return
-		}
+		abortf("Failed to retrieve session list: %s", err)
 		for game, usernames := range sessionList {
 			cli.PrintColor(cli.CyanBold, game)
 			for _, u := range usernames {
