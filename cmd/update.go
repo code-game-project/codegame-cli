@@ -16,7 +16,7 @@ import (
 // updateCmd represents the update command
 var updateCmd = &cobra.Command{
 	Use:   "update",
-	Short: "Update the current project",
+	Short: "Update the current project.",
 	Run: func(cmd *cobra.Command, args []string) {
 		update()
 	},
