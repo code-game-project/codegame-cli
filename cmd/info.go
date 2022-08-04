@@ -22,7 +22,7 @@ var infoCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		var url string
 		if len(args) > 0 {
-			url = strings.ToLower(os.Args[0])
+			url = strings.ToLower(args[0])
 		} else {
 			var err error
 			url, err = cli.Input("Game server URL:")

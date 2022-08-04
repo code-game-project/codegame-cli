@@ -28,6 +28,7 @@ var docsCmd = &cobra.Command{
 			cli.Print("Opening documentation...")
 			err := exec.OpenBrowser("https://docs.code-game.org")
 			abort(err)
+			return
 		}
 
 		api, err := server.NewAPI(args[0])
