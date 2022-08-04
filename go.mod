@@ -5,7 +5,7 @@ go 1.18
 require (
 	github.com/Bananenpro/cli v0.2.1
 	github.com/adrg/xdg v0.4.0
-	github.com/code-game-project/go-utils v0.2.4
+	github.com/code-game-project/go-utils v0.2.5
 	github.com/gomarkdown/markdown v0.0.0-20220731190611-dcdaee8e7a53
 	github.com/mattn/go-colorable v0.1.12
 	github.com/spf13/cobra v1.5.0

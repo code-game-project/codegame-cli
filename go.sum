@@ -10,6 +10,8 @@ github.com/code-game-project/go-utils v0.2.3 h1:nyejoWxktnX9SywtcV8v5BF0xS9M3kwy
 github.com/code-game-project/go-utils v0.2.3/go.mod h1:kQ6kH9XDzdM2pnJUI1lw61Gp8XOams/E2dKABa1mBI8=
 github.com/code-game-project/go-utils v0.2.4 h1:UhWy1vJeXCaV4qjbFcIo9b0tzv69DK4HPwRFbrrDKF4=
 github.com/code-game-project/go-utils v0.2.4/go.mod h1:kQ6kH9XDzdM2pnJUI1lw61Gp8XOams/E2dKABa1mBI8=
+github.com/code-game-project/go-utils v0.2.5 h1:f5IbAsUMu+e0eiDlbzbpJ5Hg2jJOCZLdcDvY3CpmGSg=
+github.com/code-game-project/go-utils v0.2.5/go.mod h1:kQ6kH9XDzdM2pnJUI1lw61Gp8XOams/E2dKABa1mBI8=
 github.com/cpuguy83/go-md2man/v2 v2.0.2/go.mod h1:tgQtvFlXSQOSOSIRvRPT7W67SCa46tRHOmNcaadrF8o=
 github.com/creack/pty v1.1.17 h1:QeVUsEDNrLBW4tMgZHvxy18sKtr6VI492kBhUfhDJNI=
 github.com/creack/pty v1.1.17/go.mod h1:MOBLtS5ELjhRRrroQr9kyvTxUAFNvYEK993ew/Vr4O4=
