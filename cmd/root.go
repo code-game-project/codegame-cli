@@ -22,7 +22,9 @@ func Execute() {
 	}
 }
 
-func init() {}
+func init() {
+	rootCmd.CompletionOptions.HiddenDefaultCmd = true
+}
 
 // abort prints the error to the console and terminates the program.
 // abort does nothing if err is nil.
