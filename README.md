@@ -8,54 +8,136 @@ The official [CodeGame](https://code-game.org) CLI.
 ### Docs and info
 
 View the CodeGame documentation:
-```sh
+```
 codegame docs
 ```
 
 View the documentation of a game:
-```sh
+```
 codegame docs <url>
 ```
 
 Get information about a game server:
-```sh
+```
 codegame info <url>
 ```
 
 ### Project templates
 
 Create a new project:
-```sh
+```
 codegame new
 ```
 
 Update event definitions, wrappers and libraries to match the latest game version:
-```sh
+```
 codegame update
 ```
 
 Permanently switch to a different game URL:
-```sh
+```
 codegame change-url <new_url>
 ```
 
 ### Running and building
 
 Run a project:
-```sh
+```
 codegame run
 ```
 
 Build a project:
-```sh
+```
 codegame build
+```
+
+### Session management
+
+List all sessions:
+```
+codegame session list
+```
+
+Show session details:
+```
+codegame session show
+```
+
+Remove a session:
+```
+codegame session remove
+```
+
+Export a session to *share.code-game.org*:
+```
+codegame session export
+```
+
+Import a session from *share.code-game.org*:
+```
+codegame session import <id>
+```
+
+### Games
+
+List all games on a server:
+```
+codegame game list <url>
+```
+
+Create a new game on a server:
+```
+codegame game create <url>
+```
+
+### Sharing
+
+Share a game:
+```
+codegame share game
+```
+
+Share a spectate link:
+```
+codegame share spectate
+```
+
+Share a session:
+```
+codegame share session
+```
+
+### cg-gen-events
+
+Download and execute the correct version of [cg-gen-events](https://github.com/code-game-project/cg-gen-events):
+```
+codegame gen-events <input>
+```
+
+### cg-debug
+
+Download and execute the correct version of [cg-debug](https://github.com/code-game-project/cg-debug):
+```
+codegame debug <url>
+```
+
+### Completion
+
+Generate an autocompletion script for codegame-cli for the specified shell:
+```
+codegame completion <bash|zsh|fish|powershell>
 ```
 
 ### Help
 
-Display help:
-```sh
+Display general help:
+```
 codegame --help
+```
+
+Display help about a specific command:
+```
+codegame help <cmd>
 ```
 
 ## Installation
@@ -95,13 +177,13 @@ To update, simply run the command again.
 
 #### x86_64
 
-```sh
+```
 curl -L https://github.com/code-game-project/codegame-cli/releases/latest/download/codegame-cli-darwin-amd64.tar.gz | tar -xz codegame && sudo mv codegame /usr/local/bin
 ```
 
 #### ARM64
 
-```sh
+```
 curl -L https://github.com/code-game-project/codegame-cli/releases/latest/download/codegame-cli-darwin-arm64.tar.gz | tar -xz codegame && sudo mv codegame /usr/local/bin
 ```
 
@@ -113,13 +195,13 @@ To update, simply run the command again.
 
 #### x86_64
 
-```sh
+```
 curl -L https://github.com/code-game-project/codegame-cli/releases/latest/download/codegame-cli-linux-amd64.tar.gz | tar -xz codegame && sudo mv codegame /usr/local/bin
 ```
 
 #### ARM64
 
-```sh
+```
 curl -L https://github.com/code-game-project/codegame-cli/releases/latest/download/codegame-cli-linux-arm64.tar.gz | tar -xz codegame && sudo mv codegame /usr/local/bin
 ```
 
@@ -133,7 +215,7 @@ You can download a prebuilt binary file for your operating system on the [releas
 
 - [Go](https://go.dev/) 1.18+
 
-```sh
+```
 git clone https://github.com/code-game-project/codegame-cli.git
 cd codegame-cli
 go build .
