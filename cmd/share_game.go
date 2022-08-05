@@ -59,14 +59,19 @@ var shareGameCmd = &cobra.Command{
 			}
 		}
 
+		joinSecret, err := cli.InputOptional("Join secret (optional):")
+		abort(err)
+
 		type request struct {
-			GameURL string `json:"game_url"`
-			GameId  string `json:"game_id"`
+			GameURL    string `json:"game_url"`
+			GameId     string `json:"game_id"`
+			JoinSecret string `json:"join_secret,omitempty"`
 		}
 
 		data := request{
-			GameURL: gameURL,
-			GameId:  gameId,
+			GameURL:    gameURL,
+			GameId:     gameId,
+			JoinSecret: joinSecret,
 		}
 
 		jsonData, err := json.Marshal(data)
