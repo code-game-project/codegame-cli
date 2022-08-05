@@ -7,6 +7,7 @@ import (
 
 	"github.com/Bananenpro/cli"
 	"github.com/code-game-project/go-utils/sessions"
+	"github.com/google/uuid"
 	"github.com/spf13/cobra"
 )
 
@@ -19,41 +20,57 @@ var shareGameCmd = &cobra.Command{
 		var gameURL string
 		var gameId string
 
+		cgConfURL := findGameURL()
+
 		if len(args) > 0 {
 			gameURL = args[0]
 			if len(args) > 1 {
 				gameId = args[1]
+			} else if _, err := uuid.Parse(gameURL); err == nil && cgConfURL != "" {
+				gameId = gameURL
+				gameURL = ""
 			}
 		}
 
 		var err error
 		if gameURL == "" {
-			fromSession, err := cli.YesNo("Select game URL from session?", true)
-			abort(err)
-			if fromSession {
-				urls, err := sessions.ListGames()
-				abortf("Failed to load games: %s", err)
-				selected, err := cli.Select("Game URL:", urls)
-				abort(err)
-				gameURL = urls[selected]
+			if cgConfURL != "" {
+				gameURL = cgConfURL
+				cli.Print("Game URL: %s", gameURL)
 			} else {
-				gameURL, err = cli.Input("Game URL:")
+				fromSession, err := cli.YesNo("Select game URL from session?", true)
 				abort(err)
+				if fromSession {
+					urls, err := sessions.ListGames()
+					abortf("Failed to load games: %s", err)
+					selected, err := cli.Select("Game URL:", urls)
+					abort(err)
+					gameURL = urls[selected]
+					cli.Print("Game URL: %s", gameURL)
+				} else {
+					gameURL, err = cli.Input("Game URL:")
+					abort(err)
+				}
 			}
 		}
 
 		if gameId == "" {
-			fromSession, err := cli.YesNo("Select game ID from session?", true)
-			abort(err)
-			if fromSession {
-				usernames, err := sessions.ListUsernames(gameURL)
-				abortf("Failed to load usernames: %s", err)
-				selected, err := cli.Select("Username:", usernames)
+			usernames, err := sessions.ListUsernames(gameURL)
+			if len(usernames) > 0 {
+				fromSession, err := cli.YesNo("Select game ID from session?", true)
 				abort(err)
-				session, err := sessions.LoadSession(gameURL, usernames[selected])
-				abortf("Failed to load session: %s", err)
-				gameId = session.GameId
-			} else {
+				if fromSession {
+					usernames, err := sessions.ListUsernames(gameURL)
+					abortf("Failed to load usernames: %s", err)
+					selected, err := cli.Select("Username:", usernames)
+					abort(err)
+					session, err := sessions.LoadSession(gameURL, usernames[selected])
+					abortf("Failed to load session: %s", err)
+					gameId = session.GameId
+					cli.Print("Game ID: %s", gameId)
+				}
+			}
+			if gameId == "" {
 				gameId, err = cli.Input("Game ID:")
 				abort(err)
 			}

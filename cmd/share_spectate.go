@@ -30,6 +30,14 @@ var shareSpectateCmd = &cobra.Command{
 			playerId = session.PlayerId
 			playerSecret = session.PlayerSecret
 		} else {
+			if len(args) > 0 {
+				gameURL = args[0]
+			} else if gameURL = findGameURL(); gameURL != "" {
+				cli.Print("Game URL: %s", gameURL)
+			} else {
+				gameURL, err = cli.Input("Game URL:")
+				abort(err)
+			}
 			gameId, err = cli.Input("Game ID:")
 			abort(err)
 			playerId, err = cli.Input("Player ID:")
