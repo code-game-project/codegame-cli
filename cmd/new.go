@@ -49,7 +49,7 @@ var newCmd = &cobra.Command{
 			abort(fmt.Errorf("project '%s' already exists.", projectName))
 		}
 
-		err = os.MkdirAll(projectName, 0755)
+		err = os.MkdirAll(projectName, 0o755)
 		abort(err)
 		err = os.Chdir(projectName)
 		abort(err)
@@ -251,7 +251,7 @@ func readme(projectName string) error {
 
 	fileContent := fmt.Sprintf("# %s", projectName)
 
-	return os.WriteFile("README.md", []byte(fileContent), 0644)
+	return os.WriteFile("README.md", []byte(fileContent), 0o644)
 }
 
 //go:embed templates/licenses/MIT.tmpl
@@ -314,6 +314,10 @@ func license() error {
 
 	if _, err := os.Stat("README.md"); err == nil {
 		err = writeReadmeLicense(licenseReadmeTemplate, external.GetUsername(), time.Now().Year())
+		if err != nil {
+			cli.Error("Failed to write license into README.md")
+			return nil
+		}
 	}
 
 	return nil
@@ -342,7 +346,7 @@ func writeLicense(templateText, username string, year int) error {
 }
 
 func writeReadmeLicense(templateText, username string, year int) error {
-	readme, err := os.OpenFile("README.md", os.O_APPEND|os.O_WRONLY, 0755)
+	readme, err := os.OpenFile("README.md", os.O_APPEND|os.O_WRONLY, 0o755)
 	if err != nil {
 		return fmt.Errorf("Failed to append license text to README.")
 	}
@@ -367,7 +371,7 @@ func writeReadmeLicense(templateText, username string, year int) error {
 }
 
 func execTemplate(templateText, path string, data any) error {
-	err := os.MkdirAll(filepath.Join(filepath.Dir(path)), 0755)
+	err := os.MkdirAll(filepath.Join(filepath.Dir(path)), 0o755)
 	if err != nil {
 		return err
 	}

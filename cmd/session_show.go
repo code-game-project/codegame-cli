@@ -1,8 +1,6 @@
 package cmd
 
 import (
-	"fmt"
-
 	"github.com/mattn/go-colorable"
 	"github.com/spf13/cobra"
 )
@@ -17,7 +15,8 @@ var sessionShowCmd = &cobra.Command{
 		abortf("Failed to load session: %s", err)
 
 		out := colorable.NewColorableStdout()
-		printInfoProperty(out, "Name", fmt.Sprintf("%s@%s", session.Username, session.GameURL), 14)
+		printInfoProperty(out, "Game URL", session.GameURL, 14)
+		printInfoProperty(out, "Username", session.Username, 14)
 		printInfoProperty(out, "Game ID", session.GameId, 14)
 		printInfoProperty(out, "Player ID", session.PlayerId, 14)
 		printInfoProperty(out, "Player Secret", session.PlayerSecret, 14)

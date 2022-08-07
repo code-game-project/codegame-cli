@@ -2,12 +2,16 @@ github.com/AlecAivazis/survey/v2 v2.3.5 h1:A8cYupsAZkjaUmhtTYv3sSqc7LO5mp1XDfqe5
 github.com/AlecAivazis/survey/v2 v2.3.5/go.mod h1:4AuI9b7RjAR+G7v9+C4YSlX/YL3K3cWNXgWXOhllqvI=
 github.com/Bananenpro/cli v0.2.2 h1:7nMlgMGMT1rxkuqCiJuo/Jd89HTnw9psE3h/vQW57nk=
 github.com/Bananenpro/cli v0.2.2/go.mod h1:JBXpIAXo/D0rlsfgCViQBicjcJY6UWUldmxvKM+ijRc=
+github.com/Bananenpro/cli v0.3.0 h1:gQOzc22yv+rePT0nRYva1ccdva3hTGyUwrGdcnXqchU=
+github.com/Bananenpro/cli v0.3.0/go.mod h1:JBXpIAXo/D0rlsfgCViQBicjcJY6UWUldmxvKM+ijRc=
 github.com/Netflix/go-expect v0.0.0-20220104043353-73e0943537d2 h1:+vx7roKuyA63nhn5WAunQHLTznkw5W8b1Xc0dNjp83s=
 github.com/Netflix/go-expect v0.0.0-20220104043353-73e0943537d2/go.mod h1:HBCaDeC1lPdgDeDbhX8XFpy1jqjK0IBG8W5K+xYqA0w=
 github.com/adrg/xdg v0.4.0 h1:RzRqFcjH4nE5C6oTAxhBtoE2IRyjBSa62SCbyPidvls=
 github.com/adrg/xdg v0.4.0/go.mod h1:N6ag73EX4wyxeaoeHctc1mas01KZgsj5tYiAIwqJE/E=
 github.com/code-game-project/go-utils v0.2.8 h1:f6ZvORWmlf8uZnCSAhLJ23MdA5dGvcAPkijTLfbv+B4=
 github.com/code-game-project/go-utils v0.2.8/go.mod h1:kQ6kH9XDzdM2pnJUI1lw61Gp8XOams/E2dKABa1mBI8=
+github.com/code-game-project/go-utils v0.2.9 h1:ezaxxLBAQRwFnIXso+zKPL7AJnuAMIcMwrhLruoyOa8=
+github.com/code-game-project/go-utils v0.2.9/go.mod h1:kQ6kH9XDzdM2pnJUI1lw61Gp8XOams/E2dKABa1mBI8=
 github.com/cpuguy83/go-md2man/v2 v2.0.2/go.mod h1:tgQtvFlXSQOSOSIRvRPT7W67SCa46tRHOmNcaadrF8o=
 github.com/creack/pty v1.1.17 h1:QeVUsEDNrLBW4tMgZHvxy18sKtr6VI492kBhUfhDJNI=
 github.com/creack/pty v1.1.17/go.mod h1:MOBLtS5ELjhRRrroQr9kyvTxUAFNvYEK993ew/Vr4O4=
