@@ -3,6 +3,8 @@
 
 The official [CodeGame](https://code-game.org) CLI.
 
+**[Install](#installation)**
+
 ## Commands
 
 ### Docs and info
