@@ -105,7 +105,7 @@ func newServer(projectName string) error {
 	}
 
 	switch language {
-	case "go", "js", "ts":
+	case "go":
 		err = modules.ExecuteNewServer(newData)
 	default:
 		err = fmt.Errorf("'new server' is not supported for '%s'", language)

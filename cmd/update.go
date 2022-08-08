@@ -85,7 +85,10 @@ func updateClient(config *cgfile.CodeGameFileData) error {
 
 	switch config.Lang {
 	case "go":
-		updateData.Lang = external.LibraryVersionFromCGVersion("code-game-project", "go-client", info.CGVersion)
+		updateData.LibraryVersion = external.LibraryVersionFromCGVersion("code-game-project", "go-client", info.CGVersion)
+		err = modules.ExecuteUpdate(updateData, config)
+	case "js", "ts":
+		updateData.LibraryVersion = external.LibraryVersionFromCGVersion("code-game-project", "javascript-client", info.CGVersion)
 		err = modules.ExecuteUpdate(updateData, config)
 	default:
 		err = fmt.Errorf("'update' is not supported for '%s'", config.Lang)
