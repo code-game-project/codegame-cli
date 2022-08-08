@@ -3,6 +3,7 @@ package cmd
 import (
 	"fmt"
 	"os"
+	"path/filepath"
 	"strings"
 
 	"github.com/code-game-project/go-utils/cgfile"
@@ -55,7 +56,6 @@ func update() error {
 	default:
 		return fmt.Errorf("Unknown project type: %s", data.Type)
 	}
-
 }
 
 func updateClient(config *cgfile.CodeGameFileData) error {
@@ -94,12 +94,13 @@ func updateClient(config *cgfile.CodeGameFileData) error {
 		return err
 	}
 
-	eventsOutput := "."
-	if config.Lang == "go" {
-		eventsOutput = strings.ReplaceAll(strings.ReplaceAll(config.Game, "-", ""), "_", "")
-	}
-
 	if config.Lang == "go" || config.Lang == "ts" {
+		eventsOutput := config.Game
+		if config.Lang == "go" {
+			eventsOutput = strings.ReplaceAll(strings.ReplaceAll(eventsOutput, "-", ""), "_", "")
+		} else if config.Lang == "ts" {
+			eventsOutput = filepath.Join("src", eventsOutput)
+		}
 		err = cggenevents.CGGenEvents(cgeVersion, eventsOutput, api.BaseURL(), config.Lang)
 	}
 

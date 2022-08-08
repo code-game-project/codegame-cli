@@ -200,12 +200,13 @@ func newClient() error {
 		return err
 	}
 
-	eventsOutput := "."
-	if language == "go" {
-		eventsOutput = strings.ReplaceAll(strings.ReplaceAll(info.Name, "-", ""), "_", "")
-	}
-
 	if language == "go" || language == "ts" {
+		eventsOutput := info.Name
+		if language == "go" {
+			eventsOutput = strings.ReplaceAll(strings.ReplaceAll(eventsOutput, "-", ""), "_", "")
+		} else if language == "ts" {
+			eventsOutput = filepath.Join("src", eventsOutput)
+		}
 		err = cggenevents.CGGenEvents(cgeVersion, eventsOutput, external.BaseURL("http", external.IsTLS(url), url), language)
 		if err != nil {
 			return err
