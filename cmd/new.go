@@ -84,7 +84,7 @@ func init() {
 }
 
 func newServer(projectName string) error {
-	language, err := cli.SelectString("Language:", []string{"Go", "JavaScript", "TypeScript"}, []string{"go", "js", "ts"})
+	language, err := cli.SelectString("Language:", []string{"Go"}, []string{"go"})
 	if err != nil {
 		return err
 	}
