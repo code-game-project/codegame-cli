@@ -13,7 +13,7 @@ import (
 
 // changeUrlCmd represents the changeUrl command
 var changeUrlCmd = &cobra.Command{
-	Use:   "changeUrl",
+	Use:   "change-url",
 	Short: "Permanently switch to a different game URL.",
 	Args:  cobra.RangeArgs(0, 1),
 	Run: func(cmd *cobra.Command, args []string) {
