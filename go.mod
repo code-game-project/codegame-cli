@@ -1,6 +1,6 @@
 module github.com/code-game-project/codegame-cli
 
-go 1.18
+go 1.19
 
 require (
 	github.com/Bananenpro/cli v0.3.0
