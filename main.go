@@ -24,7 +24,7 @@ const Version = "0.7.1"
 
 func main() {
 	checkVersion()
-	cmd.Execute()
+	cmd.Execute(Version)
 }
 
 // checkVersion prints a warning, if there is a newer version of codegame-cli available.

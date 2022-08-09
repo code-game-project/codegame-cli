@@ -15,7 +15,10 @@ var rootCmd = &cobra.Command{
 	Long:  `The CodeGame CLI helps you develop CodeGame applications.`,
 }
 
-func Execute() {
+func Execute(version string) {
+	rootCmd.SetVersionTemplate(`codegame-cli v{{.Version}}
+`)
+	rootCmd.Version = version
 	err := rootCmd.Execute()
 	if err != nil {
 		os.Exit(1)
