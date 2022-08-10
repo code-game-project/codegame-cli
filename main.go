@@ -86,7 +86,7 @@ func getLatestVersion() (string, error) {
 		parts := strings.Split(string(content), "\n")
 		if len(parts) >= 2 {
 			cacheTime, err := strconv.Atoi(parts[0])
-			if err == nil && time.Now().Unix()-int64(cacheTime) <= 60*60*24 {
+			if err == nil && time.Now().Unix()-int64(cacheTime) <= 60*60*3 {
 				return parts[1], nil
 			}
 		}
