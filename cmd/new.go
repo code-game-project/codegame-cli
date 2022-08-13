@@ -224,6 +224,7 @@ func newClient() error {
 
 func git() error {
 	if !exec.IsInstalled("git") {
+		os.Remove(".gitignore")
 		return nil
 	}
 
@@ -233,10 +234,12 @@ func git() error {
 		return err
 	}
 	if !yes {
+		os.Remove(".gitignore")
 		return nil
 	}
 	out, err := exec.Execute(true, "git", "init")
 	if err != nil {
+		os.Remove(".gitignore")
 		if out != "" {
 			cli.Error(out)
 		}
