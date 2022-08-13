@@ -164,7 +164,7 @@ func newClient() error {
 		return err
 	}
 
-	language, err := cli.SelectString("Language:", []string{"Go", "JavaScript", "TypeScript"}, []string{"go", "js", "ts"})
+	language, err := cli.SelectString("Language:", []string{"C#", "Go", "JavaScript", "TypeScript"}, []string{"cs", "go", "js", "ts"})
 	if err != nil {
 		return err
 	}
@@ -187,6 +187,9 @@ func newClient() error {
 	}
 
 	switch language {
+	case "cs":
+		newData.LibraryVersion = external.LibraryVersionFromCGVersion("code-game-project", "csharp-client", info.CGVersion)
+		err = modules.ExecuteNewClient(newData)
 	case "go":
 		newData.LibraryVersion = external.LibraryVersionFromCGVersion("code-game-project", "go-client", info.CGVersion)
 		err = modules.ExecuteNewClient(newData)
@@ -200,11 +203,14 @@ func newClient() error {
 		return err
 	}
 
-	if language == "go" || language == "ts" {
+	if language == "cs" || language == "go" || language == "ts" {
 		eventsOutput := info.Name
-		if language == "go" {
+		switch language {
+		case "cs":
+			eventsOutput = strings.ReplaceAll(strings.Title(strings.ReplaceAll(strings.ReplaceAll(eventsOutput, "_", " "), "-", " ")), " ", "")
+		case "go":
 			eventsOutput = strings.ReplaceAll(strings.ReplaceAll(eventsOutput, "-", ""), "_", "")
-		} else if language == "ts" {
+		case "ts":
 			eventsOutput = filepath.Join("src", eventsOutput)
 		}
 		err = cggenevents.CGGenEvents(cgeVersion, eventsOutput, external.BaseURL("http", external.IsTLS(url), url), language)

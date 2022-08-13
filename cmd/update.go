@@ -84,6 +84,9 @@ func updateClient(config *cgfile.CodeGameFileData) error {
 	}
 
 	switch config.Lang {
+	case "cs":
+		updateData.LibraryVersion = external.LibraryVersionFromCGVersion("code-game-project", "csharp-client", info.CGVersion)
+		err = modules.ExecuteUpdate(updateData, config)
 	case "go":
 		updateData.LibraryVersion = external.LibraryVersionFromCGVersion("code-game-project", "go-client", info.CGVersion)
 		err = modules.ExecuteUpdate(updateData, config)
@@ -97,16 +100,18 @@ func updateClient(config *cgfile.CodeGameFileData) error {
 		return err
 	}
 
-	if config.Lang == "go" || config.Lang == "ts" {
+	if config.Lang == "cs" || config.Lang == "go" || config.Lang == "ts" {
 		eventsOutput := config.Game
-		if config.Lang == "go" {
+		switch config.Lang {
+		case "cs":
+			eventsOutput = strings.ReplaceAll(strings.Title(strings.ReplaceAll(strings.ReplaceAll(eventsOutput, "_", " "), "-", " ")), " ", "")
+		case "go":
 			eventsOutput = strings.ReplaceAll(strings.ReplaceAll(eventsOutput, "-", ""), "_", "")
-		} else if config.Lang == "ts" {
+		case "ts":
 			eventsOutput = filepath.Join("src", eventsOutput)
 		}
 		err = cggenevents.CGGenEvents(cgeVersion, eventsOutput, api.BaseURL(), config.Lang)
 	}
-
 	return err
 }
 
