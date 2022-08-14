@@ -59,6 +59,7 @@ var gameCreateCmd = &cobra.Command{
 		}
 		var r response
 		err = json.NewDecoder(resp.Body).Decode(&r)
+		abort(err)
 
 		out := colorable.NewColorableStdout()
 		fmt.Fprintf(out, "%sGame ID:%s %s\n", cli.Cyan, cli.Reset, r.GameId)

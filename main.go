@@ -20,7 +20,7 @@ import (
 	"github.com/code-game-project/codegame-cli/cmd"
 )
 
-const Version = "0.7.2"
+const Version = "0.8.0"
 
 func main() {
 	checkVersion()

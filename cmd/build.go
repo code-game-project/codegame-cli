@@ -1,8 +1,10 @@
 package cmd
 
 import (
+	"errors"
 	"fmt"
 	"os"
+	"strings"
 
 	"github.com/code-game-project/go-utils/cgfile"
 	"github.com/code-game-project/go-utils/external"
@@ -25,14 +27,31 @@ var buildCmd = &cobra.Command{
 		data.URL = external.TrimURL(data.URL)
 		abort(data.Write(""))
 
-		cmdArgs := []string{"build"}
-		cmdArgs = append(cmdArgs, args...)
-
 		output, err := cmd.Flags().GetString("output")
 		abort(err)
+
+		os, err := cmd.Flags().GetString("os")
+		abort(err)
+		os = strings.ToLower(os)
+		if os != "current" && os != "windows" && os != "macos" && os != "linux" {
+			abort(fmt.Errorf("OS '%s' is not supported. (possible values: windows, macos, linux)", os))
+		}
+		arch, err := cmd.Flags().GetString("arch")
+		abort(err)
+		arch = strings.ToLower(arch)
+		if arch != "current" && arch != "x64" && arch != "x86" && arch != "arm32" && arch != "arm64" {
+			abort(fmt.Errorf("Architecture '%s' is not supported. (possible values: x64, x86, arm32, arm64)", arch))
+		}
+
+		if os == "macos" && arch == "arm32" {
+			abort(errors.New("macOS does not support arm32. Try arm64 instead."))
+		}
+
 		buildData := modules.BuildData{
 			Lang:   data.Lang,
 			Output: output,
+			OS:     os,
+			Arch:   arch,
 		}
 		switch data.Lang {
 		case "cs", "go", "js", "ts":
@@ -47,4 +66,6 @@ var buildCmd = &cobra.Command{
 func init() {
 	rootCmd.AddCommand(buildCmd)
 	buildCmd.Flags().StringP("output", "o", "", "The name of the output file.")
+	buildCmd.Flags().String("os", "current", "The target OS for compiled languages. (possible values: windows, macos, linux)")
+	buildCmd.Flags().String("arch", "current", "The target architecture for compiled languages. (possible values: x64, x86, arm32, arm64)")
 }
