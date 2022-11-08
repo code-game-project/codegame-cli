@@ -20,22 +20,26 @@ import (
 	"github.com/code-game-project/codegame-cli/cmd"
 )
 
-const Version = "0.8.0"
+const version = "dev"
 
 func main() {
 	checkVersion()
-	cmd.Execute(Version)
+	cmd.Execute(version)
 }
 
 // checkVersion prints a warning, if there is a newer version of codegame-cli available.
 // On macOS and linux the user is offered to update automatically.
 func checkVersion() {
+	if version == "dev" {
+		return
+	}
+
 	latest, err := getLatestVersion()
 	if err != nil {
 		return
 	}
 
-	currentMajor, currentMinor, currentPatch, err := semver.ParseVersion(Version)
+	currentMajor, currentMinor, currentPatch, err := semver.ParseVersion(version)
 	if err != nil {
 		return
 	}
@@ -54,7 +58,7 @@ func checkVersion() {
 		if codegameErr == nil && !cgBin.IsDir() && shErr == nil && sudoErr == nil && curlErr == nil && tarErr == nil && (runtime.GOOS == "darwin" || runtime.GOOS == "linux") {
 			update()
 		} else {
-			cli.Warn("You are using an old version of codegame-cli (v%s).\nUpdate to the latest version (v%s): https://github.com/code-game-project/codegame-cli#installation", Version, latest)
+			cli.Warn("You are using an old version of codegame-cli (%s).\nUpdate to the latest version (%s): https://github.com/code-game-project/codegame-cli#installation", version, latest)
 		}
 	}
 }
@@ -96,7 +100,6 @@ func getLatestVersion() (string, error) {
 	if err != nil {
 		return "", err
 	}
-	version := strings.TrimPrefix(tag, "v")
 	os.WriteFile(filepath.Join(cacheDir, "latest_version"), []byte(fmt.Sprintf("%d\n%s", time.Now().Unix(), version)), 0o644)
-	return version, nil
+	return tag, nil
 }

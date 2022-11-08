@@ -146,70 +146,31 @@ codegame help <cmd>
 
 ### Windows
 
-1. Open the Start menu
-2. Search for `powershell`
-3. Hit `Run as Administrator`
-4. Paste the following commands and hit enter:
+[Download](https://github.com/code-game-project/codegame-cli/releases/latest/download/install.bat) and execute `install.bat`.
 
-#### Install
+### macOS/Linux
 
-```powershell
-Invoke-WebRequest -Uri "https://github.com/code-game-project/codegame-cli/releases/latest/download/codegame-cli-windows-amd64.zip" -OutFile "C:\Program Files\codegame-cli.zip"
-Expand-Archive -LiteralPath "C:\Program Files\codegame-cli.zip" -DestinationPath "C:\Program Files\codegame-cli"
-rm "C:\Program Files\codegame-cli.zip"
-Set-ItemProperty -Path 'Registry::HKEY_LOCAL_MACHINE\System\CurrentControlSet\Control\Session Manager\Environment' -Name PATH -Value "$((Get-ItemProperty -Path 'Registry::HKEY_LOCAL_MACHINE\System\CurrentControlSet\Control\Session Manager\Environment' -Name PATH).path);C:\Program Files\codegame-cli"
+Paste one of the following commands into a terminal window:
+
+#### curl
+
+```bash
+curl -L https://raw.githubusercontent.com/code-game-project/codegame-cli/main/install.sh | bash
 ```
 
-**IMPORTANT:** Please reboot for the installation to take effect.
+#### wget (in case curl is not installed)
 
-#### Update
-
-```powershell
-rm -r -fo "C:\Program Files\codegame-cli"
-Invoke-WebRequest -Uri "https://github.com/code-game-project/codegame-cli/releases/latest/download/codegame-cli-windows-amd64.zip" -OutFile "C:\Program Files\codegame-cli.zip"
-Expand-Archive -LiteralPath "C:\Program Files\codegame-cli.zip" -DestinationPath "C:\Program Files\codegame-cli"
-rm "C:\Program Files\codegame-cli.zip"
+```bash
+wget -q --show-progress https://raw.githubusercontent.com/code-game-project/codegame-cli/main/install.sh -O- | bash
 ```
 
-### macOS
+## Uninstallation
 
-Open the Terminal application, paste the command for your architecture and hit enter.
+To remove codegame-cli from your system run:
 
-To update, simply run the command again.
-
-#### x86_64
-
+```bash
+codegame uninstall
 ```
-curl -L https://github.com/code-game-project/codegame-cli/releases/latest/download/codegame-cli-darwin-amd64.tar.gz | tar -xz codegame && sudo mv codegame /usr/local/bin
-```
-
-#### ARM64
-
-```
-curl -L https://github.com/code-game-project/codegame-cli/releases/latest/download/codegame-cli-darwin-arm64.tar.gz | tar -xz codegame && sudo mv codegame /usr/local/bin
-```
-
-### Linux
-
-Open a terminal, paste the command for your architecture and hit enter.
-
-To update, simply run the command again.
-
-#### x86_64
-
-```
-curl -L https://github.com/code-game-project/codegame-cli/releases/latest/download/codegame-cli-linux-amd64.tar.gz | tar -xz codegame && sudo mv codegame /usr/local/bin
-```
-
-#### ARM64
-
-```
-curl -L https://github.com/code-game-project/codegame-cli/releases/latest/download/codegame-cli-linux-arm64.tar.gz | tar -xz codegame && sudo mv codegame /usr/local/bin
-```
-
-### Other
-
-You can download a prebuilt binary file for your operating system on the [releases](https://github.com/code-game-project/codegame-cli/releases) page.
 
 ### Compiling from source
 
@@ -220,7 +181,7 @@ You can download a prebuilt binary file for your operating system on the [releas
 ```
 git clone https://github.com/code-game-project/codegame-cli.git
 cd codegame-cli
-go build .
+go build -o codegame .
 ```
 
 ## Modules
