@@ -27,7 +27,11 @@ var gameListCmd = &cobra.Command{
 		api, err := server.NewAPI(gameURL)
 		abort(err)
 
-		private, public, err := api.ListGames()
+		protected, err := cmd.Flags().GetBool("protected")
+		abort(err)
+		unprotected, err := cmd.Flags().GetBool("unprotected")
+		abort(err)
+		private, public, err := api.ListGames(unprotected, protected)
 		abort(err)
 
 		out := colorable.NewColorableStdout()
@@ -37,7 +41,12 @@ var gameListCmd = &cobra.Command{
 		} else {
 			cli.PrintColor(cli.Cyan, "Public:")
 			for _, g := range public {
-				cli.Print("- %s (%d players)", g.Id, g.Players)
+				if g.Protected {
+					cli.Print("- %s (%d players, protected)", g.Id, g.Players)
+				}
+				if !g.Protected {
+					cli.Print("- %s (%d players)", g.Id, g.Players)
+				}
 			}
 		}
 	},
@@ -45,4 +54,6 @@ var gameListCmd = &cobra.Command{
 
 func init() {
 	gameCmd.AddCommand(gameListCmd)
+	gameListCmd.Flags().Bool("protected", false, "Only show protected games.")
+	gameListCmd.Flags().Bool("unprotected", false, "Only show unprotected games.")
 }
