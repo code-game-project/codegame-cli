@@ -4,7 +4,7 @@ import (
 	"github.com/code-game-project/codegame-cli/cmd"
 )
 
-const version = "v0.8.0"
+const version = "dev"
 
 func main() {
 	cmd.Execute(version)
