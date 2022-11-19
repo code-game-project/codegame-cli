@@ -8,7 +8,7 @@ import (
 // shareCmd represents the share command
 var shareCmd = &cobra.Command{
 	Use:   "share",
-	Short: "A CLI for share.code-game.org.",
+	Short: "A CLI for CodeGame Share.",
 }
 
 func findGameURL() string {

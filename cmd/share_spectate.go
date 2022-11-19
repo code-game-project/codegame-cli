@@ -6,13 +6,15 @@ import (
 	"net/http"
 
 	"github.com/Bananenpro/cli"
+	"github.com/code-game-project/go-utils/config"
+	"github.com/code-game-project/go-utils/external"
 	"github.com/spf13/cobra"
 )
 
 // shareSpectateCmd represents the share spectate command
 var shareSpectateCmd = &cobra.Command{
 	Use:   "spectate",
-	Short: "Share a spectate link with share.code-game.org.",
+	Short: "Share a spectate link with CodeGame Share.",
 	Args:  cobra.RangeArgs(0, 2),
 	Run: func(cmd *cobra.Command, args []string) {
 		var gameURL string
@@ -63,7 +65,11 @@ var shareSpectateCmd = &cobra.Command{
 		jsonData, err := json.Marshal(data)
 		abort(err)
 
-		resp, err := http.Post("https://share.code-game.org/spectate", "application/json", bytes.NewBuffer(jsonData))
+		conf := config.Load()
+		shareURL := external.TrimURL(conf.ShareURL)
+		baseURL := external.BaseURL("http", external.IsTLS(shareURL), shareURL)
+
+		resp, err := http.Post(baseURL+"/spectate", "application/json", bytes.NewBuffer(jsonData))
 		if err != nil {
 			cli.Error("Failed to upload data: %s", err)
 			return
@@ -85,7 +91,7 @@ var shareSpectateCmd = &cobra.Command{
 		err = json.NewDecoder(resp.Body).Decode(&res)
 		abortf("Failed to decode server response: %s", err)
 		cli.Success("Success! You can spectate the game with the following link:")
-		cli.PrintColor(cli.Cyan, "https://share.code-game.org/%s", res.Id)
+		cli.PrintColor(cli.Cyan, baseURL+"/%s", res.Id)
 	},
 }
 

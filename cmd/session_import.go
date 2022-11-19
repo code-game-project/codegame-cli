@@ -6,6 +6,8 @@ import (
 	"net/http"
 
 	"github.com/Bananenpro/cli"
+	"github.com/code-game-project/go-utils/config"
+	"github.com/code-game-project/go-utils/external"
 	"github.com/code-game-project/go-utils/sessions"
 	"github.com/spf13/cobra"
 )
@@ -13,7 +15,7 @@ import (
 // sessionImportCmd represents the session import command
 var sessionImportCmd = &cobra.Command{
 	Use:   "import",
-	Short: "Import a session from share.code-game.org.",
+	Short: "Import a session from CodeGame Share.",
 	Args:  cobra.RangeArgs(0, 1),
 	Run: func(cmd *cobra.Command, args []string) {
 		var id string
@@ -27,8 +29,12 @@ var sessionImportCmd = &cobra.Command{
 			}
 		}
 
-		resp, err := http.Get(fmt.Sprintf("https://share.code-game.org/%s?type=session", id))
-		abortf("Failed to contact share.code-game.org: %s", err)
+		conf := config.Load()
+		shareURL := external.TrimURL(conf.ShareURL)
+		baseURL := external.BaseURL("http", external.IsTLS(shareURL), shareURL)
+
+		resp, err := http.Get(fmt.Sprintf(baseURL+"/%s?type=session", id))
+		abortf(fmt.Sprintf("Failed to contact %s: %s", conf.ShareURL, "%s"), err)
 
 		type resSession struct {
 			GameId       string `json:"game_id"`

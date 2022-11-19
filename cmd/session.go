@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"errors"
 	"os"
 
 	"github.com/Bananenpro/cli"
@@ -26,12 +27,17 @@ func selectSession(args []string) (sessions.Session, error) {
 
 	if gameURL == "" {
 		urls, err := sessions.ListGames()
+		if len(urls) == 0 {
+			abort(errors.New("no sessions available"))
+		}
 		if err != nil {
 			gameURL, err = cli.Input("Game URL:")
 		} else {
 			var index int
 			index, err = cli.Select("Game URL:", urls)
-			gameURL = urls[index]
+			if err == nil {
+				gameURL = urls[index]
+			}
 		}
 		if err != nil {
 			os.Exit(0)
@@ -40,12 +46,17 @@ func selectSession(args []string) (sessions.Session, error) {
 
 	if username == "" {
 		usernames, err := sessions.ListUsernames(gameURL)
+		if len(usernames) == 0 {
+			abort(errors.New("no sessions available"))
+		}
 		if err != nil {
 			username, err = cli.Input("Username:")
 		} else {
 			var index int
 			index, err = cli.Select("Username:", usernames)
-			username = usernames[index]
+			if err == nil {
+				username = usernames[index]
+			}
 		}
 		if err != nil {
 			os.Exit(0)

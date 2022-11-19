@@ -70,12 +70,12 @@ Remove a session:
 codegame session remove
 ```
 
-Export a session to *share.code-game.org*:
+Export a session to [CodeGame Share](https://share.code-game.org):
 ```
 codegame session export
 ```
 
-Import a session from *share.code-game.org*:
+Import a session from [CodeGame Share](https://share.code-game.org):
 ```
 codegame session import <id>
 ```
@@ -92,7 +92,7 @@ Create a new game on a server:
 codegame game create <url>
 ```
 
-### Sharing
+### Sharing with [CodeGame Share](https://share.code-game.org)
 
 Share a game:
 ```

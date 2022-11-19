@@ -6,6 +6,8 @@ import (
 	"net/http"
 
 	"github.com/Bananenpro/cli"
+	"github.com/code-game-project/go-utils/config"
+	"github.com/code-game-project/go-utils/external"
 	"github.com/code-game-project/go-utils/sessions"
 	"github.com/google/uuid"
 	"github.com/spf13/cobra"
@@ -14,7 +16,7 @@ import (
 // shareGameCmd represents the share game command
 var shareGameCmd = &cobra.Command{
 	Use:   "game",
-	Short: "Share a game with share.code-game.org.",
+	Short: "Share a game with CodeGame Share.",
 	Args:  cobra.RangeArgs(0, 2),
 	Run: func(cmd *cobra.Command, args []string) {
 		var gameURL string
@@ -94,7 +96,11 @@ var shareGameCmd = &cobra.Command{
 		jsonData, err := json.Marshal(data)
 		abort(err)
 
-		resp, err := http.Post("https://share.code-game.org/game", "application/json", bytes.NewBuffer(jsonData))
+		conf := config.Load()
+		shareURL := external.TrimURL(conf.ShareURL)
+		baseURL := external.BaseURL("http", external.IsTLS(shareURL), shareURL)
+
+		resp, err := http.Post(baseURL+"/game", "application/json", bytes.NewBuffer(jsonData))
 		if err != nil {
 			cli.Error("Failed to upload data: %s", err)
 			return
@@ -116,7 +122,7 @@ var shareGameCmd = &cobra.Command{
 		err = json.NewDecoder(resp.Body).Decode(&res)
 		abortf("Failed to decode server response: %s", err)
 		cli.Success("Success! You can view the game details with the following link:")
-		cli.PrintColor(cli.Cyan, "https://share.code-game.org/%s", res.Id)
+		cli.PrintColor(cli.Cyan, baseURL+"/%s", res.Id)
 	},
 }
 
