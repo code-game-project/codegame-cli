@@ -142,6 +142,11 @@ Display help about a specific command:
 codegame help <cmd>
 ```
 
+Check for missing dependencies and misconfigurations:
+```
+codegame doctor
+```
+
 ## Installation
 
 ### Windows
