@@ -38,6 +38,7 @@ if [[ $os == *"linux"* ]]; then
 		exit 1
 	fi
 elif [[ $os == *"darwin"* ]]; then
+	export PATH="$PATH:/Applications/Visual Studio Code.app/Contents/Resources/app/bin"
 	if [[ $arch == *"x86"* ]]; then
 		echo "Detected OS: macOS x86_64"
 		download "darwin" "amd64"
@@ -77,5 +78,17 @@ else
 fi
 
 rm codegame-cli.tar.gz
+
+if hash code 2>/dev/null; then
+	echo "Installing CodeGame VS Code extension..."
+	if hash wget 2>/dev/null; then
+		wget -q --show-progress https://github.com/code-game-project/vscode-codegame/releases/latest/download/codegame.vsix -O codegame.vsix || exit 1
+	else
+		curl -L https://github.com/code-game-project/vscode-codegame/releases/latest/download/codegame.vsix > codegame.vsix || exit 1
+	fi
+	code --uninstall-extension code-game-project.codegame &>/dev/null
+	code --install-extension codegame.vsix || exit 1
+	rm codegame.vsix
+fi
 
 echo "Done."

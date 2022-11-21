@@ -38,4 +38,13 @@ Invoke-WebRequest -Uri https://github.com/code-game-project/codegame-cli/release
 Expand-Archive -LiteralPath codegame-cli.zip -DestinationPath $InstallDir
 rm codegame-cli.zip
 
+
+if (Get-Command code -ErrorAction SilentlyContinue) {
+	Write-Host "Installing vscode-codegame..."
+	Invoke-WebRequest -Uri https://github.com/code-game-project/vscode-codegame/releases/latest/download/codegame.vsix -OutFile .\codegame.vsix
+	code --uninstall-extension code-game-project.codegame | Out-Null
+	code --install-extension codegame.vsix
+	rm codegame.vsix
+}
+
 Write-Host "Done." -ForegroundColor Green
