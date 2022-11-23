@@ -20,6 +20,9 @@ var shareSessionCmd = &cobra.Command{
 		session, err := selectSession(args)
 		abortf("Failed to load session: %s", err)
 
+		password, err := cli.InputOptional("Password (optional):")
+		abort(err)
+
 		type reqSession struct {
 			GameId       string `json:"game_id"`
 			PlayerId     string `json:"player_id"`
@@ -30,6 +33,7 @@ var shareSessionCmd = &cobra.Command{
 			GameURL  string     `json:"game_url"`
 			Username string     `json:"username"`
 			Session  reqSession `json:"session"`
+			Password string     `json:"password"`
 		}
 
 		data := request{
@@ -40,6 +44,7 @@ var shareSessionCmd = &cobra.Command{
 				PlayerId:     session.PlayerId,
 				PlayerSecret: session.PlayerSecret,
 			},
+			Password: password,
 		}
 
 		jsonData, err := json.Marshal(data)
@@ -60,7 +65,11 @@ var shareSessionCmd = &cobra.Command{
 			}
 			var res response
 			err = json.NewDecoder(resp.Body).Decode(&res)
-			cli.Error(res.Error)
+			if err != nil {
+				cli.Error("Failed to decode error message: %s", err)
+			} else {
+				cli.Error(res.Error)
+			}
 			return
 		}
 

@@ -111,7 +111,11 @@ var shareGameCmd = &cobra.Command{
 			}
 			var res response
 			err = json.NewDecoder(resp.Body).Decode(&res)
-			cli.Error(res.Error)
+			if err != nil {
+				cli.Error("Failed to decode error message: %s", err)
+			} else {
+				cli.Error(res.Error)
+			}
 			return
 		}
 

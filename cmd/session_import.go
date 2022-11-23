@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"time"
 
 	"github.com/Bananenpro/cli"
 	"github.com/code-game-project/go-utils/config"
@@ -35,6 +36,25 @@ var sessionImportCmd = &cobra.Command{
 
 		resp, err := http.Get(fmt.Sprintf(baseURL+"/%s?type=session", id))
 		abortf(fmt.Sprintf("Failed to contact %s: %s", conf.ShareURL, "%s"), err)
+
+		for resp.StatusCode == http.StatusForbidden {
+			password, err := cli.Input("Password:")
+			abort(err)
+			request, err := http.NewRequest("GET", fmt.Sprintf(baseURL+"/%s?type=session", id), nil)
+			abort(err)
+			request.Header.Set("Password", password)
+			resp, err = http.DefaultClient.Do(request)
+			abortf(fmt.Sprintf("Failed to contact %s: %s", conf.ShareURL, "%s"), err)
+			if resp.StatusCode == http.StatusTooManyRequests {
+				time.Sleep(1 * time.Second)
+				resp, err = http.DefaultClient.Do(request)
+				abortf(fmt.Sprintf("Failed to contact %s: %s", conf.ShareURL, "%s"), err)
+			}
+			if resp.StatusCode != http.StatusForbidden {
+				break
+			}
+			cli.Error("Wrong password. Try again.")
+		}
 
 		type resSession struct {
 			GameId       string `json:"game_id"`
