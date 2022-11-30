@@ -66,6 +66,6 @@ var buildCmd = &cobra.Command{
 func init() {
 	rootCmd.AddCommand(buildCmd)
 	buildCmd.Flags().StringP("output", "o", "", "The name of the output file.")
-	buildCmd.Flags().String("os", "current", "The target OS for compiled languages. (possible values: windows, macos, linux)")
-	buildCmd.Flags().String("arch", "current", "The target architecture for compiled languages. (possible values: x64, x86, arm32, arm64)")
+	buildCmd.Flags().StringP("os", "", "current", "The target OS for compiled languages. (possible values: windows, macos, linux)")
+	buildCmd.Flags().StringP("arch", "", "current", "The target architecture for compiled languages. (possible values: x64, x86, arm32, arm64)")
 }

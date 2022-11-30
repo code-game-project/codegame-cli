@@ -54,6 +54,6 @@ var gameListCmd = &cobra.Command{
 
 func init() {
 	gameCmd.AddCommand(gameListCmd)
-	gameListCmd.Flags().Bool("protected", false, "Only show protected games.")
-	gameListCmd.Flags().Bool("unprotected", false, "Only show unprotected games.")
+	gameListCmd.Flags().BoolP("protected", "", false, "Only show protected games.")
+	gameListCmd.Flags().BoolP("unprotected", "", false, "Only show unprotected games.")
 }

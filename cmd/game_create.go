@@ -71,6 +71,6 @@ var gameCreateCmd = &cobra.Command{
 
 func init() {
 	gameCmd.AddCommand(gameCreateCmd)
-	gameCreateCmd.Flags().Bool("public", false, "The game is displayed on a public game list.")
-	gameCreateCmd.Flags().Bool("protected", false, "You can only join the game with the returned join secret.")
+	gameCreateCmd.Flags().BoolP("public", "", false, "The game is displayed on a public game list.")
+	gameCreateCmd.Flags().BoolP("protected", "", false, "You can only join the game with the returned join secret.")
 }
