@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -9,6 +10,7 @@ import (
 	"strings"
 
 	"github.com/adrg/xdg"
+	"github.com/code-game-project/go-utils/cgfile"
 	"github.com/code-game-project/go-utils/cggenevents"
 	"github.com/code-game-project/go-utils/exec"
 	"github.com/spf13/cobra"
@@ -18,11 +20,44 @@ import (
 var genEventsCmd = &cobra.Command{
 	Use:   "gen-events",
 	Short: "Generate event definitions from CGE files.",
-	Args:  cobra.ExactArgs(1),
+	Args:  cobra.MaximumNArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
-		filename := args[0]
+		var output string
+		output, err := cmd.Flags().GetString("output")
+		abort(err)
+		languages, err := cmd.Flags().GetStringSlice("languages")
+		abort(err)
+
+		var filename string
+		if len(args) == 0 {
+			root, err := cgfile.FindProjectRootRelative()
+			if err != nil || cmd.Flags().Changed("output") || cmd.Flags().Changed("languages") {
+				fmt.Println(err, output, languages)
+				abort(errors.New("Expected game URL."))
+			}
+			data, err := cgfile.LoadCodeGameFile(root)
+			if err != nil {
+				abortf("Failed to load CodeGame data: %s", err)
+			}
+			if data.Type == "client" {
+				abort(errors.New("Use `codegame update` instead."))
+			} else if data.Type != "server" {
+				fmt.Println("hi")
+				abort(errors.New("Expected game URL."))
+			} else {
+				filename = filepath.Join(root, "events.cge")
+				languages = []string{data.Lang}
+				switch data.Lang {
+				case "go":
+					output = filepath.Join(root, strings.ReplaceAll(strings.ReplaceAll(data.Game, "_", ""), "-", ""))
+				default:
+					abort(errors.New("Expected game URL."))
+					fmt.Println("hi2")
+				}
+			}
+		}
+
 		var cge []byte
-		var err error
 		if strings.HasPrefix(filename, "http://") || strings.HasPrefix(filename, "https://") {
 			if !strings.HasSuffix(filename, "/api/events") && !strings.HasSuffix(filename, ".cge") {
 				if strings.HasSuffix(filename, "/api") {
@@ -47,16 +82,11 @@ var genEventsCmd = &cobra.Command{
 			abortf("Failed to read CGE file: %s", err)
 		} else {
 			cge, err = os.ReadFile(filename)
-			abortf("Failed to read CGE file: ", err)
+			abortf("Failed to read CGE file: %s", err)
 		}
 
 		cgeVersion, err := cggenevents.ParseCGEVersion(string(cge))
 		abortf("Failed to determine CGE file version: %s", err)
-
-		output, err := cmd.Flags().GetString("output")
-		abort(err)
-		languages, err := cmd.Flags().GetStringSlice("languages")
-		abort(err)
 
 		cgGenEvents, err := cggenevents.InstallCGGenEvents(cgeVersion)
 		abortf("Failed to install cg-gen-events: %s", err)
