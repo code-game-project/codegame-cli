@@ -11,24 +11,16 @@ jobs:
       runs-on: ubuntu-latest
       steps:
         - name: Checkout
-          uses: actions/checkout@v2
+          uses: actions/checkout@v3
           with:
             fetch-depth: 0
-        - name: Read info
-          id: tags
-          shell: bash
-          run: |
-            echo ::set-output name=TAG::${GITHUB_REF/refs\/tags\//}
         - name: Create Release
           id: create_release
-          uses: actions/create-release@master
+          uses: elgohr/Github-Release-Action@v4
           env:
-            GITHUB_TOKEN: ${{ github.token }}
+            GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}
           with:
-            tag_name: ${{ steps.tags.outputs.tag }}
-            release_name: ${{ steps.tags.outputs.tag }}
-            draft: false
-            prerelease: false
+            title: ${{ github.ref }}
         - name: Upload install.bat
           uses: svenstaro/upload-release-action@v2
           with:
@@ -50,11 +42,6 @@ jobs:
     steps:
     - name: Checkout
       uses: actions/checkout@v3
-    - name: Read info
-      id: tags
-      shell: bash
-      run: |
-        echo ::set-output name=TAG::${GITHUB_REF/refs\/tags\//}
     - name: Build and Publish
       uses: wangyoucao577/go-release-action@v1.28
       with:
@@ -64,6 +51,6 @@ jobs:
         binary_name: codegame
         asset_name: codegame-cli-${{matrix.goos}}-${{matrix.goarch}}
         extra_files: LICENSE README.md
-        release_tag: ${{ steps.tags.outputs.tag }}
-        ldflags: -X "main.version=${{ steps.tags.outputs.tag }}"
+        release_tag: ${{ github.ref }}
+        ldflags: -X "main.version=${{ github.ref }}"
         md5sum: false
