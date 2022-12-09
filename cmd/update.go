@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -90,6 +91,9 @@ func updateClient(config *cgfile.CodeGameFileData) error {
 	case "go":
 		updateData.LibraryVersion = external.LibraryVersionFromCGVersion("code-game-project", "go-client", info.CGVersion)
 		err = modules.ExecuteUpdate(updateData, config)
+	case "java":
+		updateData.LibraryVersion = external.LibraryVersionFromCGVersion("code-game-project", "java-client", info.CGVersion)
+		err = modules.ExecuteUpdate(updateData, config)
 	case "js", "ts":
 		updateData.LibraryVersion = external.LibraryVersionFromCGVersion("code-game-project", "javascript-client", info.CGVersion)
 		err = modules.ExecuteUpdate(updateData, config)
@@ -100,13 +104,25 @@ func updateClient(config *cgfile.CodeGameFileData) error {
 		return err
 	}
 
-	if config.Lang == "cs" || config.Lang == "go" || config.Lang == "ts" {
+	if config.Lang == "cs" || config.Lang == "go" || config.Lang == "java" || config.Lang == "ts" {
 		eventsOutput := config.Game
 		switch config.Lang {
 		case "cs":
 			eventsOutput = strings.ReplaceAll(strings.Title(strings.ReplaceAll(strings.ReplaceAll(eventsOutput, "_", " "), "-", " ")), " ", "")
 		case "go":
 			eventsOutput = strings.ReplaceAll(strings.ReplaceAll(eventsOutput, "-", ""), "_", "")
+		case "java":
+			packageConf, ok := config.LangConfig["package"]
+			if !ok {
+				return errors.New("Missing language config field `package` in .codegame.json!")
+			}
+			packageName := packageConf.(string)
+			if packageConf == "" {
+				return errors.New("Empty language config field `package` in .codegame.json!")
+			}
+			gameDir := filepath.Join("src", "main", "java")
+			pkgDir := filepath.Join(strings.Split(packageName, ".")...)
+			eventsOutput = filepath.Join(gameDir, pkgDir, strings.ReplaceAll(strings.ReplaceAll(strings.ToLower(eventsOutput), "_", ""), "-", ""))
 		case "ts":
 			eventsOutput = filepath.Join("src", eventsOutput)
 		}

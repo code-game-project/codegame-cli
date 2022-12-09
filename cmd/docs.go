@@ -56,10 +56,10 @@ var docsCmd = &cobra.Command{
 
 		os.Remove(filepath.Join(os.TempDir(), "event_docs.md"))
 
-		err = os.WriteFile(filepath.Join(os.TempDir(), "event_docs.html"), text, 0644)
+		err = os.WriteFile(filepath.Join(os.TempDir(), "event_docs.html"), text, 0o644)
 		abort(err)
 
-		err = os.WriteFile(filepath.Join(os.TempDir(), "event_docs.css"), []byte(docsStyle), 0644)
+		err = os.WriteFile(filepath.Join(os.TempDir(), "event_docs.css"), []byte(docsStyle), 0o644)
 		abort(err)
 
 		cli.Print("Opening documentation...")

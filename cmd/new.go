@@ -164,12 +164,12 @@ func newClient() error {
 		return err
 	}
 
-	language, err := cli.SelectString("Language:", []string{"C#", "Go", "JavaScript", "TypeScript"}, []string{"cs", "go", "js", "ts"})
+	language, err := cli.SelectString("Language:", []string{"C#", "Go", "Java", "JavaScript", "TypeScript"}, []string{"cs", "go", "java", "js", "ts"})
 	if err != nil {
 		return err
 	}
 
-	file := cgfile.CodeGameFileData{
+	file := &cgfile.CodeGameFileData{
 		Game: info.Name,
 		Type: "client",
 		Lang: language,
@@ -193,6 +193,9 @@ func newClient() error {
 	case "go":
 		newData.LibraryVersion = external.LibraryVersionFromCGVersion("code-game-project", "go-client", info.CGVersion)
 		err = modules.ExecuteNewClient(newData)
+	case "java":
+		newData.LibraryVersion = external.LibraryVersionFromCGVersion("code-game-project", "java-client", info.CGVersion)
+		err = modules.ExecuteNewClient(newData)
 	case "js", "ts":
 		newData.LibraryVersion = external.LibraryVersionFromCGVersion("code-game-project", "javascript-client", info.CGVersion)
 		err = modules.ExecuteNewClient(newData)
@@ -203,13 +206,30 @@ func newClient() error {
 		return err
 	}
 
-	if language == "cs" || language == "go" || language == "ts" {
+	file, err = cgfile.LoadCodeGameFile("")
+	if err != nil {
+		return fmt.Errorf("Failed to open .codegame.json: %w", err)
+	}
+
+	if language == "cs" || language == "go" || language == "java" || language == "ts" {
 		eventsOutput := info.Name
 		switch language {
 		case "cs":
 			eventsOutput = strings.ReplaceAll(strings.Title(strings.ReplaceAll(strings.ReplaceAll(eventsOutput, "_", " "), "-", " ")), " ", "")
 		case "go":
 			eventsOutput = strings.ReplaceAll(strings.ReplaceAll(eventsOutput, "-", ""), "_", "")
+		case "java":
+			packageConf, ok := file.LangConfig["package"]
+			if !ok {
+				return errors.New("Missing language config field `package` in .codegame.json!")
+			}
+			packageName := packageConf.(string)
+			if packageConf == "" {
+				return errors.New("Empty language config field `package` in .codegame.json!")
+			}
+			gameDir := filepath.Join("src", "main", "java")
+			pkgDir := filepath.Join(strings.Split(packageName, ".")...)
+			eventsOutput = filepath.Join(gameDir, pkgDir, strings.ReplaceAll(strings.ReplaceAll(strings.ToLower(eventsOutput), "_", ""), "-", ""))
 		case "ts":
 			eventsOutput = filepath.Join("src", eventsOutput)
 		}

@@ -33,7 +33,7 @@ var runCmd = &cobra.Command{
 		}
 
 		switch data.Lang {
-		case "cs", "go", "js", "ts":
+		case "cs", "go", "java", "js", "ts":
 			err = modules.ExecuteRun(runData, data)
 			abort(err)
 		default:

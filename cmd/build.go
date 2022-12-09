@@ -54,7 +54,7 @@ var buildCmd = &cobra.Command{
 			Arch:   arch,
 		}
 		switch data.Lang {
-		case "cs", "go", "js", "ts":
+		case "cs", "go", "java", "js", "ts":
 			err = modules.ExecuteBuild(buildData, data)
 			abort(err)
 		default:
