@@ -116,6 +116,15 @@ Download and execute the correct version of [cg-gen-events](https://github.com/c
 codegame gen-events <input>
 ```
 
+### LSP
+
+#### CGE
+
+Download and execute the correct version of [cge-ls](https://github.com/code-game-project/cg-gen-events/tree/main/cmd/cge-ls):
+```
+codegame lsp cge
+```
+
 ### cg-debug
 
 Download and execute the correct version of [cg-debug](https://github.com/code-game-project/cg-debug):

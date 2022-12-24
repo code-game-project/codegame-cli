@@ -42,7 +42,6 @@ var genEventsCmd = &cobra.Command{
 			if data.Type == "client" {
 				abort(errors.New("Use `codegame update` instead."))
 			} else if data.Type != "server" {
-				fmt.Println("hi")
 				abort(errors.New("Expected game URL."))
 			} else {
 				filename = filepath.Join(root, "events.cge")
@@ -52,9 +51,10 @@ var genEventsCmd = &cobra.Command{
 					output = filepath.Join(root, strings.ReplaceAll(strings.ReplaceAll(data.Game, "_", ""), "-", ""))
 				default:
 					abort(errors.New("Expected game URL."))
-					fmt.Println("hi2")
 				}
 			}
+		} else {
+			filename = args[0]
 		}
 
 		var cge []byte
