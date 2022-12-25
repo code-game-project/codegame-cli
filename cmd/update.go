@@ -128,7 +128,12 @@ func updateClient(config *cgfile.CodeGameFileData) error {
 		}
 		err = cggenevents.CGGenEvents(cgeVersion, eventsOutput, api.BaseURL(), config.Lang)
 	}
-	return err
+	if err != nil {
+		return err
+	}
+
+	config.GameVersion = info.Version
+	return config.Write("")
 }
 
 func updateServer(config *cgfile.CodeGameFileData) error {

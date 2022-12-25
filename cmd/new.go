@@ -170,10 +170,11 @@ func newClient() error {
 	}
 
 	file := &cgfile.CodeGameFileData{
-		Game: info.Name,
-		Type: "client",
-		Lang: language,
-		URL:  url,
+		Game:        info.Name,
+		GameVersion: info.Version,
+		Type:        "client",
+		Lang:        language,
+		URL:         url,
 	}
 	err = file.Write("")
 	if err != nil {

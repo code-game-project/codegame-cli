@@ -27,6 +27,10 @@ var runCmd = &cobra.Command{
 		data.URL = external.TrimURL(data.URL)
 		abort(data.Write(""))
 
+		if data.GameVersion != "" {
+			os.Setenv("CG_GAME_VERSION", data.GameVersion)
+		}
+
 		runData := modules.RunData{
 			Lang: data.Lang,
 			Args: args,
