@@ -4,9 +4,12 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/Bananenpro/cli"
 	"github.com/code-game-project/go-utils/cgfile"
 	"github.com/code-game-project/go-utils/external"
 	"github.com/code-game-project/go-utils/modules"
+	"github.com/code-game-project/go-utils/semver"
+	"github.com/code-game-project/go-utils/server"
 	"github.com/spf13/cobra"
 )
 
@@ -28,8 +31,30 @@ var runCmd = &cobra.Command{
 		abort(data.Write(""))
 
 		if data.GameVersion != "" {
-			os.Setenv("CG_GAME_VERSION", data.GameVersion)
+			wrapMaj, wrapMin, _, err := semver.ParseVersion(data.GameVersion)
+			if err != nil {
+				goto skipGameVersionCheck
+			}
+
+			api, err := server.NewAPI(data.URL)
+			if err != nil {
+				goto skipGameVersionCheck
+			}
+			info, err := api.FetchGameInfo()
+			if err != nil || info.Version == "" {
+				goto skipGameVersionCheck
+			}
+
+			gameMaj, gameMin, _, err := semver.ParseVersion(info.Version)
+			if err != nil {
+				goto skipGameVersionCheck
+			}
+
+			if wrapMaj != gameMaj || wrapMin != gameMin {
+				cli.Warn("Game version mismatch. Server: v%s, client: v%s. Please run 'codegame update'.", info.Version, data.GameVersion)
+			}
 		}
+	skipGameVersionCheck:
 
 		runData := modules.RunData{
 			Lang: data.Lang,
