@@ -2,10 +2,12 @@ package cmd
 
 import (
 	"fmt"
+	"net"
 	"os"
 
 	"github.com/Bananenpro/cli"
 	"github.com/code-game-project/go-utils/cgfile"
+	"github.com/code-game-project/go-utils/config"
 	"github.com/code-game-project/go-utils/external"
 	"github.com/code-game-project/go-utils/modules"
 	"github.com/code-game-project/go-utils/semver"
@@ -61,6 +63,12 @@ var runCmd = &cobra.Command{
 			Args: args,
 		}
 
+		if _, ok := os.LookupEnv("CG_PORT"); !ok {
+			conf := config.Load()
+			port := findAvailablePort(conf.DevPort)
+			os.Setenv("CG_PORT", fmt.Sprintf("%d", port))
+		}
+
 		switch data.Lang {
 		case "cs", "go", "java", "js", "ts":
 			err = modules.ExecuteRun(runData, data)
@@ -69,6 +77,17 @@ var runCmd = &cobra.Command{
 			abort(fmt.Errorf("'run' is not supported for '%s'", data.Lang))
 		}
 	},
+}
+
+func findAvailablePort(port int) int {
+	for i := port; i < port+100; i++ {
+		listener, err := net.Listen("tcp", fmt.Sprintf(":%d", i))
+		if err == nil {
+			listener.Close()
+			return i
+		}
+	}
+	return port
 }
 
 func init() {
