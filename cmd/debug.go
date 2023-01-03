@@ -60,17 +60,16 @@ func findDebugVersion(cgVersion string) (string, error) {
 		return strings.TrimPrefix(version, "v"), err
 	}
 
-	body, err := external.LoadVersionsJSON("code-game-project", "cg-debug")
+	res, err := external.LoadVersionsJSON("code-game-project", "cg-debug")
 	if err != nil {
 		cli.Warn("Couldn't fetch versions.json. Using latest cg-debug version.")
 		version, err := external.LatestGithubTag("code-game-project", "cg-debug")
 		return strings.TrimPrefix(version, "v"), err
 	}
-	defer body.Close()
 
 	var versions map[string]string
 
-	err = json.NewDecoder(body).Decode(&versions)
+	err = json.Unmarshal(res, &versions)
 	if err != nil {
 		cli.Warn("Invalid versions.json. Using latest cg-debug version.")
 		version, err := external.LatestGithubTag("code-game-project", "cg-debug")
