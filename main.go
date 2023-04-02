@@ -1,7 +1,10 @@
 package main
 
-import "fmt"
+import "github.com/code-game-project/codegame-cli/cmd"
+
+// populated by CI (e.g. "1.2.3")
+var version = "dev"
 
 func main() {
-	fmt.Println("codegame-cli")
+	cmd.Execute(version)
 }
