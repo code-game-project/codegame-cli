@@ -19,7 +19,7 @@ var snippets = map[string]string{
 }
 
 var keywords = []string{
-	"event", "command", "type", "enum", "name", "version",
+	"event", "command", "type", "enum", "cge",
 }
 
 var types = []string{

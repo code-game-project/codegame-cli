@@ -73,6 +73,10 @@ func (d *document) validate(notify glsp.NotifyFunc) {
 
 	cgeParser, err := components.CGEParser(versions.MustParse(d.metadata.CGEVersion))
 	if err != nil {
+		d.diagnostics = append(d.diagnostics, cgeDiagnosticToLSP(adapter.Diagnostic{
+			Type:    adapter.DiagWarning,
+			Message: "unsupported CGE version; LSP disabled",
+		}))
 		fmt.Fprintf(os.Stderr, "ERROR: failed to load cge-parser: %s", err)
 		return
 	}
