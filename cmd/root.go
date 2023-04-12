@@ -4,6 +4,8 @@ import (
 	"os"
 
 	"github.com/spf13/cobra"
+
+	"github.com/code-game-project/codegame-cli/version"
 )
 
 var cfgFile string
@@ -11,12 +13,11 @@ var cfgFile string
 var rootCmd = &cobra.Command{
 	Use:   "codegame-cli",
 	Short: "The official CodeGame CLI",
-	Long:  "codegame-cli helps you develop CodeGame applications",
 }
 
-func Execute(version string) {
+func Execute() {
 	rootCmd.SetVersionTemplate("codegame-cli {{.Version}}\n")
-	rootCmd.Version = version
+	rootCmd.Version = version.Version
 	rootCmd.InitDefaultVersionFlag()
 	rootCmd.CompletionOptions.HiddenDefaultCmd = true
 

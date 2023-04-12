@@ -1,5 +1,5 @@
 # codegame-cli
-![CodeGame Version](https://img.shields.io/badge/CodeGame-v0.8+-orange)
+![CodeGame Version](https://img.shields.io/badge/CodeGame-v0.7+-orange)
 
 The official [CodeGame](https://code-game.org) CLI.
 
