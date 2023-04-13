@@ -99,7 +99,12 @@ func (d *document) validate(notify glsp.NotifyFunc) {
 		d.diagnostics = append(d.diagnostics, cgeDiagnosticToLSP(diag))
 	}
 	if !hadError || len(d.objects) == 0 {
-		d.objects = result.Objects
+		d.objects = make([]adapter.Object, 0, 1+len(result.Events)+len(result.Commands)+len(result.Types)+len(result.Enums))
+		d.objects = append(d.objects, result.Config)
+		d.objects = append(d.objects, result.Events...)
+		d.objects = append(d.objects, result.Commands...)
+		d.objects = append(d.objects, result.Types...)
+		d.objects = append(d.objects, result.Enums...)
 	}
 }
 

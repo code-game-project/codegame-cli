@@ -5,6 +5,8 @@ import (
 
 	"github.com/spf13/cobra"
 
+	"github.com/code-game-project/cli-utils/feedback"
+
 	"github.com/code-game-project/codegame-cli/version"
 )
 
@@ -20,6 +22,8 @@ func Execute() {
 	rootCmd.Version = version.Version
 	rootCmd.InitDefaultVersionFlag()
 	rootCmd.CompletionOptions.HiddenDefaultCmd = true
+
+	feedback.Enable(feedback.NewCLIFeedback(feedback.SeverityInfo))
 
 	err := rootCmd.Execute()
 	if err != nil {
