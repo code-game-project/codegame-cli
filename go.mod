@@ -4,13 +4,11 @@ go 1.20
 
 require (
 	github.com/code-game-project/cge-parser v0.0.0-20230413142902-7f6369a29beb
-	github.com/code-game-project/cli-utils v0.0.0-20230413165132-133f4bcc43c4
+	github.com/code-game-project/cli-utils v0.0.0-20230414165041-62809b2117b1
 	github.com/spf13/cobra v1.7.0
 	github.com/tliron/glsp v0.1.1
 	github.com/tliron/kutil v0.1.67
 )
-
-replace github.com/code-game-project/cli-utils => ../cli-utils
 
 require (
 	github.com/AlecAivazis/survey/v2 v2.3.6 // indirect
