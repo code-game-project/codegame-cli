@@ -13,7 +13,7 @@ var docsCmd = &cobra.Command{
 	Short: fmt.Sprintf("Open %s in the default web browser", docs.DocsURL),
 	Run: func(_ *cobra.Command, _ []string) {
 		err := docs.Open()
-		cobra.CheckErr(err)
+		checkErr("Failed to open documentation: %s", err)
 	},
 }
 

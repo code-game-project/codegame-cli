@@ -12,7 +12,8 @@ var createCmd = &cobra.Command{
 	Short: "Create a new CodeGame project",
 	Args:  cobra.NoArgs,
 	Run: func(_ *cobra.Command, _ []string) {
-		cobra.CheckErr(create.Create())
+		err := create.Create()
+		checkErr("Failed to create project: %s", err)
 	},
 }
 

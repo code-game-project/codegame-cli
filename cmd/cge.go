@@ -11,7 +11,8 @@ var cgeCmd = &cobra.Command{
 	Use:   "cge",
 	Short: "Launch cge-ls",
 	Run: func(_ *cobra.Command, _ []string) {
-		cobra.CheckErr(cge.RunLSP())
+		err := cge.RunLSP()
+		checkErr("Failed to launch cge-ls: %s", err)
 	},
 }
 
