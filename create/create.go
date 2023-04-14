@@ -109,12 +109,9 @@ func git() {
 		return
 	}
 
-	out, err := exec.ExecuteHidden("git", "init")
+	err := exec.ExecuteDimmed("git", "init")
 	if err != nil {
 		os.Remove(".gitignore")
-		if out != "" {
-			fmt.Fprintln(os.Stderr, out)
-		}
 		feedback.Error("codegame-cli", "Failed to initialize Git: %s", err)
 		return
 	}
