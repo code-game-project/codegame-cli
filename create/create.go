@@ -12,6 +12,7 @@ import (
 
 	_ "embed"
 
+	"github.com/code-game-project/cli-utils/cgfile"
 	"github.com/code-game-project/cli-utils/cli"
 	"github.com/code-game-project/cli-utils/exec"
 	"github.com/code-game-project/cli-utils/feedback"
@@ -95,6 +96,18 @@ func createClient() error {
 		}
 		return nil
 	}))
+
+	file := &cgfile.CodeGameFileData{
+		Game:        info.Name,
+		GameVersion: info.Version,
+		Type:        "client",
+		Lang:        lang,
+		URL:         url,
+	}
+	err = file.Write("")
+	if err != nil {
+		return fmt.Errorf("create .codegame.json: %w", err)
+	}
 
 	return mod.ExecCreateClient(info.Name, url, lang, info.CGVersion)
 }
