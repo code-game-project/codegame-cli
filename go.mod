@@ -4,7 +4,7 @@ go 1.20
 
 require (
 	github.com/code-game-project/cge-parser v0.0.0-20230413142902-7f6369a29beb
-	github.com/code-game-project/cli-utils v0.0.0-20230414165041-62809b2117b1
+	github.com/code-game-project/cli-utils v0.0.0-20230415102921-d1864ac391e7
 	github.com/spf13/cobra v1.7.0
 	github.com/tliron/glsp v0.1.1
 	github.com/tliron/kutil v0.1.67
@@ -32,7 +32,7 @@ require (
 	github.com/sasha-s/go-deadlock v0.3.1 // indirect
 	github.com/sourcegraph/jsonrpc2 v0.2.0 // indirect
 	github.com/spf13/pflag v1.0.5 // indirect
-	github.com/vbauerster/mpb/v8 v8.3.0 // indirect
+	github.com/vbauerster/mpb/v8 v8.4.0 // indirect
 	github.com/vmihailenco/msgpack/v5 v5.3.5 // indirect
 	github.com/vmihailenco/tagparser/v2 v2.0.0 // indirect
 	golang.org/x/crypto v0.8.0 // indirect

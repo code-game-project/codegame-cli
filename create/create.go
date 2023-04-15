@@ -113,7 +113,32 @@ func createClient() error {
 }
 
 func createServer(projectName string) error {
-	return nil
+	availableLanguages := modules.AvailableLanguages()
+	languages := make(map[string]string)
+	for name, info := range availableLanguages {
+		if info.SupportsServer {
+			languages[info.DisplayName] = name
+		}
+	}
+	if len(languages) == 0 {
+		return fmt.Errorf("no available language modules")
+	}
+	lang := cli.SelectString("Language:", languages)
+	mod, err := modules.LoadModule(lang)
+	if err != nil {
+		return fmt.Errorf("load %s module: %w", lang, err)
+	}
+
+	file := &cgfile.CodeGameFileData{
+		Game: projectName,
+		Type: "server",
+		Lang: lang,
+	}
+	err = file.Write("")
+	if err != nil {
+		return fmt.Errorf("create .codegame.json: %w", err)
+	}
+	return mod.ExecCreateServer(projectName, lang)
 }
 
 func git() {
