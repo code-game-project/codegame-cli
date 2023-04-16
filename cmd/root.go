@@ -5,6 +5,7 @@ import (
 
 	"github.com/spf13/cobra"
 
+	"github.com/code-game-project/cli-utils/cgfile"
 	"github.com/code-game-project/cli-utils/feedback"
 
 	"github.com/code-game-project/codegame-cli/version"
@@ -33,7 +34,16 @@ func Execute() {
 
 	feedback.Enable(feedback.NewCLIFeedback(feedback.SeverityInfo))
 
-	err := rootCmd.Execute()
+	projectRoot, err := cgfile.FindProjectRoot()
+	if err == nil {
+		err = os.Chdir(projectRoot)
+		if err != nil {
+			feedback.Fatal("codegame-cli", "Failed to chdir to project root: %s", err)
+			os.Exit(1)
+		}
+	}
+
+	err = rootCmd.Execute()
 	if err != nil {
 		os.Exit(1)
 	}
