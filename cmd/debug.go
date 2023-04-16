@@ -8,6 +8,7 @@ import (
 	"github.com/code-game-project/cli-utils/components"
 	"github.com/code-game-project/cli-utils/exec"
 	"github.com/code-game-project/cli-utils/feedback"
+	"github.com/code-game-project/cli-utils/request"
 	"github.com/code-game-project/cli-utils/server"
 	"github.com/spf13/cobra"
 )
@@ -28,6 +29,7 @@ var debugCmd = &cobra.Command{
 		} else {
 			url = args[0]
 		}
+		url = request.TrimURL(url)
 		feedback.Info("codegame-cli", "Debugging %s...", url)
 
 		info, err := server.FetchGameInfo(url)
