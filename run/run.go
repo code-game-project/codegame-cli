@@ -7,6 +7,7 @@ import (
 
 	"github.com/code-game-project/cli-utils/cgfile"
 	"github.com/code-game-project/cli-utils/cli"
+	"github.com/code-game-project/cli-utils/feedback"
 	"github.com/code-game-project/cli-utils/modules"
 	"github.com/code-game-project/cli-utils/server"
 	"github.com/code-game-project/cli-utils/sessions"
@@ -28,6 +29,11 @@ func RunServer(cgFile *cgfile.CodeGameFileData, port int, args []string) error {
 }
 
 func RunClient(cgFile *cgfile.CodeGameFileData, spectate bool, args []string) error {
+	err := sessions.Clean()
+	if err != nil {
+		feedback.Error("codegame-cli", "Failed to remove invalid sessions: %s", err)
+	}
+
 	sessns, err := sessions.ListSessionsByGame(cgFile.GameURL)
 	if err != nil {
 		return fmt.Errorf("list sessions: %w", err)
@@ -62,7 +68,7 @@ func RunClient(cgFile *cgfile.CodeGameFileData, spectate bool, args []string) er
 	} else if index == len(games)-1 {
 		gameID = cli.Input("Game ID:", true, "")
 	} else {
-		gameID = sessns[index].GameID
+		gameID = sessns[index-1].GameID
 	}
 
 	if spectate {
@@ -113,8 +119,8 @@ func RunClient(cgFile *cgfile.CodeGameFileData, spectate bool, args []string) er
 			playerID = cli.Input("Player ID:", true, "")
 			playerSecret = cli.Input("Player secret:", true, "")
 		} else {
-			playerID = players[index].id
-			playerSecret = players[index].secret
+			playerID = players[index-1].id
+			playerSecret = players[index-1].secret
 		}
 	} else {
 		playerID, playerSecret, err = server.CreatePlayer(cgFile.GameURL, gameID, cli.Input("Username:", true, ""), joinSecret)
@@ -166,7 +172,26 @@ func RunClientConnect(cgFile *cgfile.CodeGameFileData, gameID, playerID, playerS
 	if err != nil {
 		return fmt.Errorf("load %s module: %w", cgFile.Language, err)
 	}
-	return mod.ExecRunClient(cgFile.ModVersion, cgFile.GameURL, cgFile.Language, gameID, &playerID, &playerSecret, false, args)
+
+	username, err := server.FetchUsername(cgFile.GameURL, gameID, playerID)
+	if err != nil {
+		return fmt.Errorf("the player does not exist")
+	}
+
+	session := sessions.NewSession(cgFile.GameURL, username, gameID, playerID, playerSecret)
+	err = session.Save()
+	if err != nil {
+		feedback.Error("codegame-cli", "Failed to save session: %s", err)
+	}
+
+	err = mod.ExecRunClient(cgFile.ModVersion, cgFile.GameURL, cgFile.Language, gameID, &playerID, &playerSecret, false, args)
+	if err != nil {
+		err2 := session.Remove()
+		if err2 != nil {
+			feedback.Error("codegame-cli", "Failed to remove invalid session: %s", err2)
+		}
+	}
+	return err
 }
 
 func RunClientSpectate(cgFile *cgfile.CodeGameFileData, gameID string, args []string) error {

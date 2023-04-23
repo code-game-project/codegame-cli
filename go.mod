@@ -4,7 +4,7 @@ go 1.20
 
 require (
 	github.com/code-game-project/cge-parser v0.0.0-20230413142902-7f6369a29beb
-	github.com/code-game-project/cli-utils v0.0.0-20230423101943-16db8e7ba3fa
+	github.com/code-game-project/cli-utils v0.0.0-20230423152820-e3a3c0d469af
 	github.com/mattn/go-colorable v0.1.13
 	github.com/spf13/cobra v1.7.0
 	github.com/tliron/glsp v0.1.1
