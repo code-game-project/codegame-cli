@@ -17,8 +17,9 @@ var (
 
 // runCmd represents the run command
 var runCmd = &cobra.Command{
-	Use:   "run",
-	Short: "Execute a CodeGame application",
+	Use:                "run",
+	Short:              "Execute a CodeGame application",
+	DisableFlagParsing: true,
 	Run: func(_ *cobra.Command, args []string) {
 		cgFile, err := cgfile.Load("")
 		checkErr("Not in a CodeGame project directory: %s", err)
