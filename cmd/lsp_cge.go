@@ -6,8 +6,8 @@ import (
 	"github.com/code-game-project/codegame-cli/lsp/cge"
 )
 
-// cgeCmd represents the cge command
-var cgeCmd = &cobra.Command{
+// lspCgeCmd represents the lsp cge command
+var lspCgeCmd = &cobra.Command{
 	Use:   "cge",
 	Short: "Launch cge-ls",
 	Run: func(_ *cobra.Command, _ []string) {
@@ -17,5 +17,5 @@ var cgeCmd = &cobra.Command{
 }
 
 func init() {
-	lspCmd.AddCommand(cgeCmd)
+	lspCmd.AddCommand(lspCgeCmd)
 }
