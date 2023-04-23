@@ -23,7 +23,7 @@ var debugCmd = &cobra.Command{
 		if len(args) == 0 {
 			file, err := cgfile.Load("")
 			if err == nil {
-				url = file.URL
+				url = file.GameURL
 			}
 			url = cli.Input("Game URL:", true, url)
 		} else {

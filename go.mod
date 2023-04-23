@@ -4,7 +4,8 @@ go 1.20
 
 require (
 	github.com/code-game-project/cge-parser v0.0.0-20230413142902-7f6369a29beb
-	github.com/code-game-project/cli-utils v0.0.0-20230415102921-d1864ac391e7
+	github.com/code-game-project/cli-utils v0.0.0-20230419175501-a9c6504ec787
+	github.com/mattn/go-colorable v0.1.13
 	github.com/spf13/cobra v1.7.0
 	github.com/tliron/glsp v0.1.1
 	github.com/tliron/kutil v0.1.67
@@ -21,7 +22,6 @@ require (
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect
 	github.com/kballard/go-shellquote v0.0.0-20180428030007-95032a82bc51 // indirect
 	github.com/lucasb-eyer/go-colorful v1.2.0 // indirect
-	github.com/mattn/go-colorable v0.1.13 // indirect
 	github.com/mattn/go-isatty v0.0.18 // indirect
 	github.com/mattn/go-runewidth v0.0.14 // indirect
 	github.com/mgutz/ansi v0.0.0-20200706080929-d51e80ef957d // indirect

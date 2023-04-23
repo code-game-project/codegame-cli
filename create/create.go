@@ -98,18 +98,32 @@ func createClient() error {
 	}))
 
 	file := &cgfile.CodeGameFileData{
-		Game:        info.Name,
+		GameName:    info.Name,
 		GameVersion: info.Version,
-		Type:        "client",
-		Lang:        lang,
-		URL:         url,
+		ProjectType: "client",
+		Language:    lang,
+		GameURL:     url,
 	}
 	err = file.Write("")
 	if err != nil {
 		return fmt.Errorf("create .codegame.json: %w", err)
 	}
 
-	return mod.ExecCreateClient(info.Name, url, lang, info.CGVersion)
+	modVersion, err := mod.ExecCreateClient(info.Name, url, lang, info.CGVersion)
+	if err != nil {
+		return err
+	}
+
+	file, err = cgfile.Load("")
+	if err != nil {
+		return fmt.Errorf("load .codegame.json: %w", err)
+	}
+	file.ModVersion = modVersion[:2]
+	err = file.Write("")
+	if err != nil {
+		return fmt.Errorf("update .codegame.json: %w", err)
+	}
+	return nil
 }
 
 func createServer(projectName string) error {
@@ -130,15 +144,30 @@ func createServer(projectName string) error {
 	}
 
 	file := &cgfile.CodeGameFileData{
-		Game: projectName,
-		Type: "server",
-		Lang: lang,
+		GameName:    projectName,
+		ProjectType: "server",
+		Language:    lang,
 	}
 	err = file.Write("")
 	if err != nil {
 		return fmt.Errorf("create .codegame.json: %w", err)
 	}
-	return mod.ExecCreateServer(projectName, lang)
+
+	modVersion, err := mod.ExecCreateServer(projectName, lang)
+	if err != nil {
+		return err
+	}
+
+	file, err = cgfile.Load("")
+	if err != nil {
+		return fmt.Errorf("load .codegame.json: %w", err)
+	}
+	file.ModVersion = modVersion[:2]
+	err = file.Write("")
+	if err != nil {
+		return fmt.Errorf("update .codegame.json: %w", err)
+	}
+	return nil
 }
 
 func git() {
