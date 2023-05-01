@@ -22,20 +22,30 @@ func init() {
 func Run(repoURL string, args []string) error {
 	path := filepath.Join(gamesDir, url.PathEscape(repoURL))
 	if _, err := os.Stat(path); err == nil {
-		return run(path, args)
+		return run(path, args, true)
 	}
+	feedback.Info("codegame-cli", "Installing game server...")
 	err := exec.ExecuteDimmed("git", "clone", repoURL, path)
 	if err != nil {
 		return fmt.Errorf("clone game repository: %w", err)
 	}
-	return run(path, args)
+	return run(path, args, false)
 }
 
-func run(path string, args []string) error {
+func run(path string, args []string, update bool) error {
 	err := os.Chdir(path)
 	if err != nil {
 		return fmt.Errorf("chdir to game repository: %w", err)
 	}
+
+	if update {
+		feedback.Info("codegame-cli", "Updating game server...")
+		err = exec.ExecuteDimmed("git", "pull")
+		if err != nil {
+			feedback.Error("codegame-cli", "Failed to update game server: %s", err)
+		}
+	}
+
 	file, err := cgfile.Load("")
 	if err != nil {
 		os.RemoveAll(path)
