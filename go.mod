@@ -3,19 +3,19 @@ module github.com/code-game-project/codegame-cli
 go 1.20
 
 require (
+	github.com/adrg/xdg v0.4.0
 	github.com/code-game-project/cge-parser v0.0.0-20230413142902-7f6369a29beb
-	github.com/code-game-project/cli-utils v0.0.0-20230423152820-e3a3c0d469af
+	github.com/code-game-project/cli-utils v0.0.0-20230501100329-b0109a4a6e2b
 	github.com/mattn/go-colorable v0.1.13
 	github.com/spf13/cobra v1.7.0
 	github.com/tliron/glsp v0.1.1
-	github.com/tliron/kutil v0.1.67
+	github.com/tliron/kutil v0.1.68
 )
 
 require (
 	github.com/AlecAivazis/survey/v2 v2.3.6 // indirect
 	github.com/VividCortex/ewma v1.2.0 // indirect
 	github.com/acarl005/stripansi v0.0.0-20180116102854-5a71ef0e047d // indirect
-	github.com/adrg/xdg v0.4.0 // indirect
 	github.com/aymanbagabas/go-osc52/v2 v2.0.1 // indirect
 	github.com/gorilla/websocket v1.5.0 // indirect
 	github.com/iancoleman/strcase v0.2.0 // indirect

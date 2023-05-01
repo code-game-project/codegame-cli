@@ -81,6 +81,7 @@ var doctorRules = []doctorCategory{
 	{name: "CLI", rules: []doctorRule{
 		newDoctorRuleTool("`codegame` is not in $PATH. We recommend to install codegame-cli with the official install script: https://github.com/code-game-project/codegame-cli#installation", "codegame"),
 		newDoctorRuleToolWithCondition("Either curl or wget must be installed to use `codegame upgrade`.", runtime.GOOS != "windows", "curl", "wget"),
+		newDoctorRuleTool("`git` must be installed to use `codegame games run`", "git"),
 	}},
 	{name: "C#", rules: []doctorRule{
 		newDoctorRuleTool("`dotnet` must be installed to develop CodeGame applications using C#. Install it from https://dotnet.microsoft.com/en-us/download.", "dotnet"),
